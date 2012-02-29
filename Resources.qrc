@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>C:/Users/PJames/Pictures/48/Chosen/add.png</file>
+        <file>C:/Users/PJames/Pictures/48/Chosen/pause.png</file>
+        <file>C:/Users/PJames/Pictures/48/Chosen/start.png</file>
+        <file>C:/Users/PJames/Pictures/48/Chosen/stop.png</file>
+        <file>C:/Users/PJames/Pictures/48/Chosen/down.png</file>
+        <file>C:/Users/PJames/Pictures/48/Chosen/up.png</file>
+        <file>C:/Users/PJames/Pictures/48/Chosen/delete.png</file>
+    </qresource>
+</RCC>
