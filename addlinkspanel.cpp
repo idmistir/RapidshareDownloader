@@ -40,11 +40,14 @@ AddLinksPanel::AddLinksPanel(QWidget *parent) :
 
     this->setLayout(layoutVAddLinks);
 
+    btAdd->setEnabled(false);
+
     connect(teLinks, SIGNAL(textChanged()), this, SLOT(resizeToContents()));
     connect(teLinks, SIGNAL(textChanged()), this, SLOT(suggestPath()));
     connect(btFind, SIGNAL(clicked()), this, SLOT(findPath()));
     connect(btAdd, SIGNAL(clicked()), this, SLOT(accept()));
     connect(btCancel, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(tbPath, SIGNAL(textChanged(QString)), this, SLOT(tbPath_textChanged(QString)));
 }
 
 void AddLinksPanel::resizeToContents( void ) {
@@ -52,8 +55,23 @@ void AddLinksPanel::resizeToContents( void ) {
     this->resize(resizeFactor, this->height());
 }
 
+void AddLinksPanel::tbPath_textChanged( QString path ) {
+    QDir dir(path);
+    if (path.isEmpty())
+        return;
+    btAdd->setEnabled(dir.exists() ? true : false);
+}
+
 void AddLinksPanel::findPath( void ) {
     tbPath->setText(QFileDialog::getExistingDirectory(this, tr("Locate destination directory"), "/"));
+}
+
+QString AddLinksPanel::getPath( void ) {
+    return tbPath->text();
+}
+
+QTextDocument *AddLinksPanel::getLinks( void ) {
+    return teLinks->document();
 }
 
 void AddLinksPanel::suggestPath( void ) {

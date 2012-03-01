@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QFileDialog>
 #include <QSettings>
+#include <QDir>
 
 class AddLinksPanel : public QDialog
 {
@@ -16,10 +17,13 @@ class AddLinksPanel : public QDialog
 public:
     explicit AddLinksPanel(QWidget *parent = 0);
     
+    QTextDocument *getLinks( void );
+    QString       getPath( void );
 private slots:
     void resizeToContents( void );
     void suggestPath( void );
     void findPath( void );
+    void tbPath_textChanged( QString path );
 
 private:
     QLabel *lbAddLinks, *lbSaveTo;
