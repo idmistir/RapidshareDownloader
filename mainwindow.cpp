@@ -6,12 +6,25 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->resize(this->size());
+
+    settings = new QAction(this);
+    settings->setText(tr("Settings"));
+
+    this->menuBar()->addAction(settings);
+    connect(settings, SIGNAL(triggered()), this, SLOT(settingsMenu()));
+    return;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::settingsMenu( void ) {
+    SettingsPanel *panel = new SettingsPanel(this);
+    panel->exec();
+
+    return;
 }
 
 void MainWindow::resizeEvent(QResizeEvent *e) {
