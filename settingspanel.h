@@ -11,6 +11,11 @@
 #include <QGridLayout>
 #include <QTableWidget>
 #include <QTableWidgetItem>
+#include <QSettings>
+#include <QFontComboBox>
+#include <QFileDialog>
+#include <QAction>
+#include "fontcomboboxdelegate.h"
 
 class SettingsPanel : public QDialog
 {
@@ -22,16 +27,22 @@ signals:
     
 public slots:
 
+private slots:
+    void saveSettings( void );
+    void loadSettings( void );
+    void findPathForCell( int, int );
+    void insertRow( void );
+    void removeRow( void );
+
 private:
     QLabel *lbSettings, *lbRsHeader, *lbRsUser, *lbRsPass, *lbRsChecked, *lbConcDownloads,
            *lbNameToPath, *lbLinkContains, *lbSuggestedPath;
     QLineEdit *tbRsUser, *tbRsPass, *tbConcDownloads;
     QPushButton *btOk, *btCancel, *btRsCheckAccount;
-    QSpacerItem *hSpacerMid, *hSpacerRight, *hSpacerBot;
     QGridLayout *layoutRs;
-    QBoxLayout *layoutSettings, *layoutVTable, *layoutHButtons;
-
+    QBoxLayout *layoutSettings, *layoutHButtons;
     QTableWidget *tblN2P;
+    QAction *addRow, *delRow;
 };
 
 #endif // SETTINGSPANEL_H

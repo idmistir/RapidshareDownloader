@@ -12,10 +12,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    settingspanel.cpp
+    settingspanel.cpp \
+    fontcomboboxdelegate.cpp
 
 HEADERS  += mainwindow.h \
-    settingspanel.h
+    settingspanel.h \
+    fontcomboboxdelegate.h
 
 FORMS    += mainwindow.ui
 
