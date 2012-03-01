@@ -9,6 +9,9 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
     lbRsPass = new QLabel(this);
     lbRsChecked = new QLabel(this);
     lbConcDownloads = new QLabel(this);
+    lbFastMode = new QLabel(this);
+
+    cbFastMode = new QCheckBox(this);
 
     tbRsUser = new QLineEdit(this);
     tbRsPass = new QLineEdit(this);
@@ -34,6 +37,9 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
     lbRsChecked->setText(tr("Not Checked"));
     lbConcDownloads->setText(tr("Concurrent Downloads"));
 
+    lbFastMode->setText(tr("Fast-Mode"));
+    lbFastMode->setAlignment(Qt::AlignHCenter);
+
     lbRsHeader->setAlignment(Qt::AlignHCenter);
     lbRsUser->setAlignment(Qt::AlignHCenter);
     lbRsPass->setAlignment(Qt::AlignHCenter);
@@ -52,6 +58,8 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
     layoutRs->addWidget(btRsCheckAccount, 3, 1);
     layoutRs->addWidget(lbConcDownloads, 1, 4);
     layoutRs->addWidget(tbConcDownloads, 1, 5);
+    layoutRs->addWidget(lbFastMode, 2, 4);
+    layoutRs->addWidget(cbFastMode, 2, 5);
 
     layoutHButtons->addWidget(btOk);
     layoutHButtons->addWidget(btCancel);
@@ -109,6 +117,8 @@ void SettingsPanel::saveSettings( void ) {
     settings.setValue("rsuser", tbRsUser->text());
     settings.setValue("rspass", tbRsPass->text());
     settings.setValue("concd", tbConcDownloads->text());
+    settings.setValue("fastmode", cbFastMode->isChecked() ? "true" : "false");
+
     for (int row = 0; row < tblN2P->rowCount(); row++) {
         settings.beginGroup(QString("Preference#%1").arg(row));
         settings.remove("");
@@ -127,6 +137,8 @@ void SettingsPanel::loadSettings( void ) {
     tbRsUser->setText(settings.value("rsuser").toString());
     tbRsPass->setText(settings.value("rspass").toString());
     tbConcDownloads->setText(settings.value("concd").toString());
+    cbFastMode->setChecked(settings.value("fastmode").toString() == "true" ? true : false);
+
     for (int currentPref = 0;; currentPref++) {
         settings.beginGroup(QString("Preference#%1").arg(currentPref));
         if (settings.value("1").isNull()) {

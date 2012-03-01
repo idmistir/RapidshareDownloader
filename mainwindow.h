@@ -8,6 +8,7 @@
 #include <QAction>
 
 #include "settingspanel.h"
+#include "addlinkspanel.h"
 
 namespace Ui {
 class MainWindow;
@@ -23,6 +24,7 @@ public:
     
 private slots:
     void settingsMenu( void );
+    void addLinksMenu( void );
 
 private:
     void resizeEvent(QResizeEvent *);

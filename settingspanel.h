@@ -15,6 +15,7 @@
 #include <QFontComboBox>
 #include <QFileDialog>
 #include <QAction>
+#include <QCheckBox>
 #include "fontcomboboxdelegate.h"
 
 class SettingsPanel : public QDialog
@@ -36,13 +37,14 @@ private slots:
 
 private:
     QLabel *lbSettings, *lbRsHeader, *lbRsUser, *lbRsPass, *lbRsChecked, *lbConcDownloads,
-           *lbNameToPath, *lbLinkContains, *lbSuggestedPath;
+           *lbNameToPath, *lbLinkContains, *lbSuggestedPath, *lbFastMode;
     QLineEdit *tbRsUser, *tbRsPass, *tbConcDownloads;
     QPushButton *btOk, *btCancel, *btRsCheckAccount;
     QGridLayout *layoutRs;
     QBoxLayout *layoutSettings, *layoutHButtons;
     QTableWidget *tblN2P;
     QAction *addRow, *delRow;
+    QCheckBox *cbFastMode;
 };
 
 #endif // SETTINGSPANEL_H

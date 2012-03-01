@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     this->menuBar()->addAction(settings);
     connect(settings, SIGNAL(triggered()), this, SLOT(settingsMenu()));
+    connect(ui->btAdd, SIGNAL(clicked()), this, SLOT(addLinksMenu()));
     return;
 }
 
@@ -20,11 +21,14 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::addLinksMenu( void ) {
+    AddLinksPanel *panel = new AddLinksPanel(this);
+    panel->exec();
+}
+
 void MainWindow::settingsMenu( void ) {
     SettingsPanel *panel = new SettingsPanel(this);
     panel->exec();
-
-    return;
 }
 
 void MainWindow::resizeEvent(QResizeEvent *e) {
