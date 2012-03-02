@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 TARGET = PRJ-RapidshareDownloader
 TEMPLATE = app
@@ -14,12 +14,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     settingspanel.cpp \
     fontcomboboxdelegate.cpp \
-    addlinkspanel.cpp
+    addlinkspanel.cpp \
+    downloader.cpp
 
 HEADERS  += mainwindow.h \
     settingspanel.h \
     fontcomboboxdelegate.h \
-    addlinkspanel.h
+    addlinkspanel.h \
+    downloader.h
 
 FORMS    += mainwindow.ui
 

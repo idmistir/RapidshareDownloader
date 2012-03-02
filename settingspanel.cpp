@@ -10,8 +10,10 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
     lbRsChecked = new QLabel(this);
     lbConcDownloads = new QLabel(this);
     lbFastMode = new QLabel(this);
+    lbAutoStart = new QLabel(this);
 
     cbFastMode = new QCheckBox(this);
+    cbAutoStart = new QCheckBox(this);
 
     tbRsUser = new QLineEdit(this);
     tbRsPass = new QLineEdit(this);
@@ -39,11 +41,15 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
 
     lbFastMode->setText(tr("Fast-Mode"));
     lbFastMode->setAlignment(Qt::AlignHCenter);
+    lbAutoStart->setText(tr("AutoStart"));
+    lbAutoStart->setAlignment(Qt::AlignHCenter);
 
     lbRsHeader->setAlignment(Qt::AlignHCenter);
     lbRsUser->setAlignment(Qt::AlignHCenter);
     lbRsPass->setAlignment(Qt::AlignHCenter);
     lbRsChecked->setAlignment(Qt::AlignHCenter);
+
+    lbRsChecked->setTextFormat(Qt::RichText);
 
     btOk->setText(tr("OK"));
     btCancel->setText(tr("Cancel"));
@@ -60,6 +66,8 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
     layoutRs->addWidget(tbConcDownloads, 1, 5);
     layoutRs->addWidget(lbFastMode, 2, 4);
     layoutRs->addWidget(cbFastMode, 2, 5);
+    layoutRs->addWidget(lbAutoStart, 3, 4);
+    layoutRs->addWidget(cbAutoStart, 3, 5);
 
     layoutHButtons->addWidget(btOk);
     layoutHButtons->addWidget(btCancel);
@@ -90,6 +98,7 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
     connect(btCancel, SIGNAL(clicked()), this, SLOT(reject()));
     connect(addRow, SIGNAL(triggered()), this, SLOT(insertRow()));
     connect(delRow, SIGNAL(triggered()), this, SLOT(removeRow()));
+    connect(btRsCheckAccount, SIGNAL(clicked()), this, SLOT(checkPremium()));
 
     loadSettings();
     return;
@@ -101,6 +110,14 @@ void SettingsPanel::insertRow( void ) {
 
 void SettingsPanel::removeRow( void ) {
     tblN2P->removeRow(tblN2P->currentRow());
+}
+
+void SettingsPanel::checkPremium( void ) {
+    Downloader *downloader = new Downloader(this);
+    if (downloader->checkAccount(tbRsUser->text(), tbRsPass->text()))
+        lbRsChecked->setText("<font color=\"#40FF00\">Valid!</font>");
+    else
+        lbRsChecked->setText("<font color=\"#FF0000\">Invalid!</font>");
 }
 
 void SettingsPanel::findPathForCell(int row, int column) {
@@ -118,7 +135,7 @@ void SettingsPanel::saveSettings( void ) {
     settings.setValue("rspass", tbRsPass->text());
     settings.setValue("concd", tbConcDownloads->text());
     settings.setValue("fastmode", cbFastMode->isChecked() ? "true" : "false");
-
+    settings.setValue("autostart", cbAutoStart->isChecked() ? "true" : "false");
     for (int row = 0; row < tblN2P->rowCount(); row++) {
         settings.beginGroup(QString("Preference#%1").arg(row));
         settings.remove("");
@@ -138,7 +155,7 @@ void SettingsPanel::loadSettings( void ) {
     tbRsPass->setText(settings.value("rspass").toString());
     tbConcDownloads->setText(settings.value("concd").toString());
     cbFastMode->setChecked(settings.value("fastmode").toString() == "true" ? true : false);
-
+    cbAutoStart->setChecked(settings.value("autostart").toString() == "true" ? true : false);
     for (int currentPref = 0;; currentPref++) {
         settings.beginGroup(QString("Preference#%1").arg(currentPref));
         if (settings.value("1").isNull()) {
@@ -150,9 +167,9 @@ void SettingsPanel::loadSettings( void ) {
         QTableWidgetItem *item0 = new QTableWidgetItem(settings.value("1").toString());
         QTableWidgetItem *item1 = new QTableWidgetItem(settings.value("2").toString());
         QTableWidgetItem *item2 = new QTableWidgetItem(settings.value("3").toString());
-        tblN2P->setItem(currentPref, 0, item0);
-        tblN2P->setItem(currentPref, 1, item1);
-        tblN2P->setItem(currentPref, 2, item2);
+        tblN2P->setItem(currentPref, Order, item0);
+        tblN2P->setItem(currentPref, Tag, item1);
+        tblN2P->setItem(currentPref, Path, item2);
 
         settings.endGroup();
     }

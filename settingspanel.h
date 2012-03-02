@@ -16,6 +16,7 @@
 #include <QFileDialog>
 #include <QAction>
 #include <QCheckBox>
+#include "downloader.h"
 #include "fontcomboboxdelegate.h"
 
 class SettingsPanel : public QDialog
@@ -34,17 +35,20 @@ private slots:
     void findPathForCell( int, int );
     void insertRow( void );
     void removeRow( void );
+    void checkPremium( void );
 
 private:
     QLabel *lbSettings, *lbRsHeader, *lbRsUser, *lbRsPass, *lbRsChecked, *lbConcDownloads,
-           *lbNameToPath, *lbLinkContains, *lbSuggestedPath, *lbFastMode;
+           *lbNameToPath, *lbLinkContains, *lbSuggestedPath, *lbFastMode, *lbAutoStart;
     QLineEdit *tbRsUser, *tbRsPass, *tbConcDownloads;
     QPushButton *btOk, *btCancel, *btRsCheckAccount;
     QGridLayout *layoutRs;
     QBoxLayout *layoutSettings, *layoutHButtons;
     QTableWidget *tblN2P;
     QAction *addRow, *delRow;
-    QCheckBox *cbFastMode;
+    QCheckBox *cbFastMode, *cbAutoStart;
+
+    enum COLUMNS {Order = 0, Tag, Path};
 };
 
 #endif // SETTINGSPANEL_H
