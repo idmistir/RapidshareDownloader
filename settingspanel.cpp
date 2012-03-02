@@ -130,7 +130,6 @@ void SettingsPanel::findPathForCell(int row, int column) {
 void SettingsPanel::saveSettings( void ) {
     QSettings settings("NoOrganization", "RapidshareDownloader");
     settings.beginGroup("Settings");
-    settings.remove("");
     settings.setValue("rsuser", tbRsUser->text());
     settings.setValue("rspass", tbRsPass->text());
     settings.setValue("concd", tbConcDownloads->text());
