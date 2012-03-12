@@ -11,6 +11,8 @@
 #include <QList>
 #include <QFile>
 #include <QTime>
+#include <QSslConfiguration>
+#include <QSslError>
 
 class MainWindow;
 
@@ -22,11 +24,13 @@ public:
     
     bool checkAccount(const QString &user, const QString &pass);
     bool download(const QString &link, const QString &saveAs);
+    bool downloadDirect(const QString &link);
 
 private slots:
     void requestFinished( void );
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void requestError(QNetworkReply::NetworkError nerror);
+    void requestSslErrors(QList<QSslError> errors);
 
 signals:
     void updateMainWindow(QString filename, QString size, QString progress, QString speed, QString eta, QString status);
@@ -38,8 +42,9 @@ private:
     struct DOWNLOADINFO {
         QString link;
         QString path;
+        QString fileid;
+        QString filename;
         bool paused;
-        QNetworkAccessManager *manager;
         QNetworkReply *reply;
         QFile *file;
         QTime *timer;
