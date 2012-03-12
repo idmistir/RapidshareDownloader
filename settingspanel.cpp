@@ -153,8 +153,8 @@ void SettingsPanel::loadSettings( void ) {
     tbRsUser->setText(settings.value("rsuser").toString());
     tbRsPass->setText(settings.value("rspass").toString());
     tbConcDownloads->setText(settings.value("concd").toString());
-    cbFastMode->setChecked(settings.value("fastmode").toString() == "true" ? true : false);
-    cbAutoStart->setChecked(settings.value("autostart").toString() == "true" ? true : false);
+    cbFastMode->setChecked(settings.value("fastmode").toBool());
+    cbAutoStart->setChecked(settings.value("autostart").toBool());
     for (int currentPref = 0;; currentPref++) {
         settings.beginGroup(QString("Preference#%1").arg(currentPref));
         if (settings.value("1").isNull()) {
