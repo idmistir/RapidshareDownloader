@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->btStop, SIGNAL(clicked()), this, SLOT(btStop_clicked()));
     connect(ui->btMoveUp, SIGNAL(clicked()), this, SLOT(btMoveUp_clicked()));
     connect(ui->btMoveDown, SIGNAL(clicked()), this, SLOT(btMoveDown_clicked()));
+    connect(this, SIGNAL(startNewDownload()), this, SLOT(btStart_clicked()));
 
     loadSettings();
     return;
@@ -43,6 +44,10 @@ void MainWindow::updateDownload(QString filename, QString size, QString progress
             ui->tblDownloads->item(i, Speed)->setText(speed);
             ui->tblDownloads->item(i, ETA)->setText(eta);
             ui->tblDownloads->item(i, Status)->setText(status);
+            if (status == tr("COMPLETED")) {
+                active--;
+                emit startNewDownload();
+            }
         }
     }
 }
@@ -50,16 +55,26 @@ void MainWindow::updateDownload(QString filename, QString size, QString progress
 void MainWindow::btStart_clicked( void ) {
     if (active >= concd)
         return;
-    if (ui->tblDownloads->selectedItems().count()) {
-        if (ui->tblDownloads->selectedItems().at(0)->text().isEmpty())
-            return;
-        //todo
 
-    } else {
-        for (int i = 0; active < concd && i < ui->tblDownloads->rowCount(); i++) {
-            if (ui->tblDownloads->item(i, Status)->text() == tr("WAITING")) {
-                if (downloader->download(ui->tblDownloads->item(i, FileName)->text(), ui->tblDownloads->item(i, Path)->text()))
-                    active++;
+    if (sender() != this) {
+        if (ui->tblDownloads->selectedItems().count()) {
+            if (ui->tblDownloads->selectedItems().at(0)->text().isEmpty())
+                return;
+            for (int i = 0; active < concd && i < ui->tblDownloads->selectedItems().count(); i++) {
+                if (ui->tblDownloads->item(i, Status)->text() == tr("WAITING")) {
+                    if (downloader->download(ui->tblDownloads->item(i, FileName)->text(), ui->tblDownloads->item(i, Path)->text()))
+                        active++;
+                }
+            }
+            return;
+        }
+    }
+
+    for (int i = 0; active < concd && i < ui->tblDownloads->rowCount(); i++) {
+        if (ui->tblDownloads->item(i, Status)->text() == tr("WAITING")) {
+            if (downloader->download(ui->tblDownloads->item(i, FileName)->text(), ui->tblDownloads->item(i, Path)->text())) {
+                ui->tblDownloads->item(i, Status)->setText(tr("QUEUING"));
+                active++;
             }
         }
     }

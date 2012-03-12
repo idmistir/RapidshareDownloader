@@ -30,6 +30,9 @@ public:
 public slots:
     void updateDownload(QString filename, QString size = "", QString progress = "", QString speed = "", QString eta = "", QString status = "");
 
+signals:
+    void startNewDownload( void );
+
 private slots:
     void settingsMenu( void );
     void addLinksMenu( void );

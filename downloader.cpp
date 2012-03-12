@@ -194,8 +194,8 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
 
     double bytes = bytesTotal;
     for (int i = 0;; i++) {
-        if (bytes > 1)
-            bytes = bytes / 1024;
+        if (bytes > 1024)
+            bytes /= 1024;
         else {
             size = QString::number(bytes, 'f', 2);
             switch (i) {
@@ -221,7 +221,7 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
         }
     }
 
-    QString status = "DOWNLOADING";
+    QString status = tr("DOWNLOADING");
     if (bytesReceived == bytesTotal) {
         for (int i = 0; i < downloads.count(); i++) {
             if (((DOWNLOADINFO*)downloads.at(i))->reply == reply) {
@@ -229,7 +229,7 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
                 currDownload->file->deleteLater();
                 currDownload->reply->deleteLater();
                 downloads.removeAt(i);
-                status = "COMPLETED";
+                status = tr("COMPLETED");
             }
         }
     }
