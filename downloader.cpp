@@ -32,7 +32,7 @@ bool Downloader::checkAccount(const QString &user, const QString &pass) {
     connect(manager, SIGNAL(finished(QNetworkReply*)), &loop, SLOT(quit()));
     loop.exec();
 
-    if (reply->bytesAvailable())
+    if (reply->readAll().contains("accountid"))
         return true;
     return false;
 }
@@ -104,7 +104,6 @@ bool Downloader::download(const QString &link, const QString &saveAs) {
         newDownload->timer = new QTime();
         newDownload->timer->start();
         downloads.append(newDownload);
-        newDownload->reply->waitForReadyRead(10000);
         return true;
     }
     delete newDownload;
