@@ -41,10 +41,13 @@ signals:
 
 private:
     void loadSettings( void );
+    QUrl redirectUrl(const QUrl& possibleRedirectUrl, const QUrl& oldRedirectUrl) const;
+
     QNetworkAccessManager *manager;
     
     struct DOWNLOADINFO {
         QString link;
+        QString redirectedFrom;
         QString path;
         QString fileid;
         QString filename;

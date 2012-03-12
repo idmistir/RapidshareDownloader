@@ -193,6 +193,7 @@ void MainWindow::addLinksMenu( void ) {
         for (int i = 0; i < links.length(); i++) {
             addLink(links.at(i), fpath);
         }
+        saveLinks();
     }
 }
 

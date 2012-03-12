@@ -78,12 +78,33 @@ bool Downloader::checkAccount(const QString &user, const QString &pass) {
 
 
 bool Downloader::download(const QString &link, const QString &saveAs) {
+    //Check for redirects
+    //Seriously nokia, asynchronous APIs are not always the best.
+    QNetworkRequest rq(link);
+    QNetworkReply *networkReply = manager->get(rq);
+    QEventLoop loop;
+    connect(networkReply, SIGNAL(finished()), &loop, SLOT(quit()));
+    loop.exec();
+
+    QVariant possibleRedirectUrl =
+        networkReply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+
+    QUrl urlRedirectedTo = redirectUrl(possibleRedirectUrl.toUrl(), urlRedirectedTo);
+    QString llink = link;
+
+    if(!urlRedirectedTo.isEmpty())
+        llink = urlRedirectedTo.toString();
+    else
+        urlRedirectedTo.clear();
+    //todo: check if redirect is rapidshare
+
     DOWNLOADINFO *newDownload = new DOWNLOADINFO;
-    newDownload->link = link;
+    newDownload->link = llink;
+    newDownload->redirectedFrom = link;
     newDownload->path = saveAs;
     newDownload->paused = false;
 
-    QStringList parts = link.split('/');
+    QStringList parts = llink.split('/');
     newDownload->fileid = parts.at(parts.count() - 2);
     newDownload->filename = parts.last();
 
@@ -233,7 +254,10 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
             }
         }
     }
-    emit updateMainWindow(currDownload->link, size, progress, unit, eta, status, QString::number(bytesReceived));
+    if (currDownload->redirectedFrom.isEmpty())
+        emit updateMainWindow(currDownload->link, size, progress, unit, eta, status, QString::number(bytesReceived));
+    else
+        emit updateMainWindow(currDownload->redirectedFrom, size, progress, unit, eta, status, QString::number(bytesReceived));
 }
 
 void Downloader::pauseDownload( const QString &link ) {
@@ -242,4 +266,11 @@ void Downloader::pauseDownload( const QString &link ) {
 
 void Downloader::stopDownload(const QString &link) {
 
+}
+
+QUrl Downloader::redirectUrl(const QUrl& possibleRedirectUrl, const QUrl& oldRedirectUrl) const {
+    QUrl redirectUrl;
+    if(!possibleRedirectUrl.isEmpty() && possibleRedirectUrl != oldRedirectUrl)
+        redirectUrl = possibleRedirectUrl;
+    return redirectUrl;
 }
