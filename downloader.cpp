@@ -32,21 +32,8 @@ bool Downloader::checkAccount(const QString &user, const QString &pass) {
     connect(manager, SIGNAL(finished(QNetworkReply*)), &loop, SLOT(quit()));
     loop.exec();
 
-    if (reply->bytesAvailable()) {
-        /*QStringList data = QString(reply->readAll()).split('\n');
-
-        for (int i = 0; i < data.length(); i++) {
-            if (data.at(i).contains("cookie")) {
-                QSettings settings("NoOrganization", "RapidshareDownloader");
-                settings.beginGroup("Settings");
-                settings.setValue("cookie", data.at(i).split('=').at(1));
-                settings.endGroup();
-                return true;
-            }
-        }
-        */
+    if (reply->bytesAvailable())
         return true;
-    }
     return false;
 }
 
@@ -127,9 +114,7 @@ bool Downloader::download(const QString &link, const QString &saveAs) {
 void Downloader::requestError(QNetworkReply::NetworkError nerror) {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(QObject::sender());
     QString error = reply->errorString();
-    error += "b";
-    error += "b";
-    error += "b";
+    //todo: handle + display error
 }
 
 void Downloader::requestFinished( void ) {
