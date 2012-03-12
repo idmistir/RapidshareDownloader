@@ -28,8 +28,12 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     
+    bool isDownloadPaused(const QString &link);
+    int  downloadLast(const QString &link);
+    int  downloadTotal(const QString &link);
+
 public slots:
-    void updateDownload(QString filename, QString size = "", QString progress = "", QString speed = "", QString eta = "", QString status = "", QString next = "");
+    void updateDownload(QString filename, QString size = "", QString progress = "", QString speed = "", QString eta = "", QString status = "", QString next = "", QString total = "");
 
 signals:
     void startNewDownload( void );
@@ -51,7 +55,7 @@ private:
     void loadSettings( void );
     void saveLinks( void );
     void loadLinks( void );
-    void addLink( const QString &link, const QString &saveAs, const QString &status = "", const int next = 0 );
+    void addLink( const QString &link, const QString &saveAs, const QString &status = "", const int nextText = 0, const int totalText = 0 );
     void sortList(QModelIndexList &list, bool ascending = true);
 
     Downloader *downloader;
@@ -61,7 +65,7 @@ private:
     int concd, active;
     bool fastmode, autostart;
 
-    enum COLUMNS { FileName = 0, FileSize, Progress, Speed, ETA, Status, Path, Next };
+    enum COLUMNS { FileName = 0, FileSize, Progress, Speed, ETA, Status, Path, Next, Total };
 
     Ui::MainWindow *ui;
 };

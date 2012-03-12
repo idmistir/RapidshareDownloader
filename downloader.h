@@ -37,7 +37,7 @@ private slots:
     void requestSslErrors(QList<QSslError> errors);
 
 signals:
-    void updateMainWindow(QString filename, QString size, QString progress, QString speed, QString eta, QString status, QString next);
+    void updateMainWindow(QString filename, QString size, QString progress, QString speed, QString eta, QString status, QString next, QString total);
 
 private:
     void loadSettings( void );
@@ -51,7 +51,9 @@ private:
         QString path;
         QString fileid;
         QString filename;
-        bool paused;
+        qint64 downloaded;
+        qint64 total;
+        qint64 prev;
         QNetworkReply *reply;
         QFile *file;
         QTime *timer;

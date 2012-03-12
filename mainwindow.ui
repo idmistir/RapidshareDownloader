@@ -81,6 +81,11 @@
       <string>Next</string>
      </property>
     </column>
+    <column>
+     <property name="text">
+      <string>Total</string>
+     </property>
+    </column>
    </widget>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">

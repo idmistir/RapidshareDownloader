@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     downloader = new Downloader(this);
 
     ui->tblDownloads->setColumnHidden(Next, true);
+    ui->tblDownloads->setColumnHidden(Total, true);
     ui->tblDownloads->setSortingEnabled(false);
 
     this->menuBar()->addAction(settings);
@@ -44,19 +45,58 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::updateDownload(QString filename, QString size, QString progress, QString speed, QString eta, QString status, QString next) {
+bool MainWindow::isDownloadPaused(const QString &link) {
+    for (int i = 0; i < ui->tblDownloads->rowCount(); i++) {
+        if (ui->tblDownloads->item(i, FileName)->text() == link) {
+            if (ui->tblDownloads->item(i, Status)->text() == tr("PAUSED"))
+                return true;
+            else
+                return false;
+        }
+    }
+    return false;
+}
+
+int MainWindow::downloadLast(const QString &link) {
+    for (int i = 0; i < ui->tblDownloads->rowCount(); i++) {
+        if (ui->tblDownloads->item(i, FileName)->text() == link) {
+            return ui->tblDownloads->item(i, Next)->text().toInt();
+        }
+    }
+    return 0;
+}
+
+int MainWindow::downloadTotal(const QString &link) {
+    for (int i = 0; i < ui->tblDownloads->rowCount(); i++) {
+        if (ui->tblDownloads->item(i, FileName)->text() == link) {
+            return ui->tblDownloads->item(i, Total)->text().toInt();
+        }
+    }
+    return 0;
+}
+
+void MainWindow::updateDownload(QString filename, QString size, QString progress, QString speed, QString eta, QString status, QString next, QString total) {
     for (int i = 0; i < ui->tblDownloads->rowCount(); i++) {
         if (ui->tblDownloads->item(i, FileName)->text() == filename) {
-            ui->tblDownloads->item(i, FileSize)->setText(size);
-            ui->tblDownloads->item(i, Progress)->setText(progress);
-            ui->tblDownloads->item(i, Speed)->setText(speed);
-            ui->tblDownloads->item(i, ETA)->setText(eta);
-            ui->tblDownloads->item(i, Status)->setText(status);
-            ui->tblDownloads->item(i, Next)->setText(next);
+            if (!size.isEmpty())
+                ui->tblDownloads->item(i, FileSize)->setText(size);
+            if (!progress.isEmpty())
+                ui->tblDownloads->item(i, Progress)->setText(progress);
+            if (!speed.isEmpty())
+                ui->tblDownloads->item(i, Speed)->setText(speed);
+            if (!eta.isEmpty())
+                ui->tblDownloads->item(i, ETA)->setText(eta);
+            if (!status.isEmpty())
+                ui->tblDownloads->item(i, Status)->setText(status);
+            if (!next.isEmpty())
+                ui->tblDownloads->item(i, Next)->setText(next);
+            if (!total.isEmpty())
+                ui->tblDownloads->item(i, Total)->setText(total);
             if (status == tr("COMPLETED")) {
                 active--;
                 emit startNewDownload();
-            }
+            } else if (status == tr("PAUSED"))
+                active--;
             saveLinks();
         }
     }
@@ -89,7 +129,7 @@ void MainWindow::btStart_clicked( void ) {
         sortList(list);
         if (list.size()) {
             for (int i = 0; active < concd && i < list.size(); i++) {
-                if (ui->tblDownloads->item(list.at(i).row(), Status)->text() == tr("WAITING")) {
+                if (ui->tblDownloads->item(list.at(i).row(), Status)->text() == tr("WAITING") || ui->tblDownloads->item(list.at(i).row(), Status)->text() == tr("PAUSED")) {
                     if (downloader->download(ui->tblDownloads->item(list.at(i).row(), FileName)->text(), ui->tblDownloads->item(list.at(i).row(), Path)->text()))
                         active++;
                 }
@@ -99,7 +139,7 @@ void MainWindow::btStart_clicked( void ) {
     }
 
     for (int i = 0; active < concd && i < ui->tblDownloads->rowCount(); i++) {
-        if (ui->tblDownloads->item(i, Status)->text() == tr("WAITING")) {
+        if (ui->tblDownloads->item(i, Status)->text() == tr("WAITING") || ui->tblDownloads->item(i, Status)->text() == tr("PAUSED")) {
             if (downloader->download(ui->tblDownloads->item(i, FileName)->text(), ui->tblDownloads->item(i, Path)->text())) {
                 ui->tblDownloads->item(i, Status)->setText(tr("QUEUING"));
                 active++;
@@ -197,7 +237,7 @@ void MainWindow::addLinksMenu( void ) {
     }
 }
 
-void MainWindow::addLink( const QString &link, const QString &saveAs, const QString &statusText, const int nextText ) {
+void MainWindow::addLink( const QString &link, const QString &saveAs, const QString &statusText, const int nextText, const int totalText ) {
     int nextrow = ui->tblDownloads->rowCount();
     ui->tblDownloads->insertRow(nextrow);
     QTableWidgetItem *name = new QTableWidgetItem();
@@ -208,6 +248,7 @@ void MainWindow::addLink( const QString &link, const QString &saveAs, const QStr
     QTableWidgetItem *speed = new QTableWidgetItem();
     QTableWidgetItem *eta = new QTableWidgetItem();
     QTableWidgetItem *next = new QTableWidgetItem();
+    QTableWidgetItem *total = new QTableWidgetItem();
 
     name->setText(link);
     path->setText(saveAs);
@@ -223,6 +264,10 @@ void MainWindow::addLink( const QString &link, const QString &saveAs, const QStr
         next->setText(QString::number(nextText));
     else
         next->setText("");
+    if (totalText)
+        total->setText(QString::number(totalText));
+    else
+        total->setText("");
 
     name->setTextAlignment(Qt::AlignCenter);
     path->setTextAlignment(Qt::AlignCenter);
@@ -232,6 +277,7 @@ void MainWindow::addLink( const QString &link, const QString &saveAs, const QStr
     speed->setTextAlignment(Qt::AlignCenter);
     eta->setTextAlignment(Qt::AlignCenter);
     next->setTextAlignment(Qt::AlignCenter);
+    total->setTextAlignment(Qt::AlignCenter);
 
     ui->tblDownloads->setItem(nextrow, FileName, name);
     ui->tblDownloads->setItem(nextrow, Path, path);
@@ -241,6 +287,7 @@ void MainWindow::addLink( const QString &link, const QString &saveAs, const QStr
     ui->tblDownloads->setItem(nextrow, ETA, eta);
     ui->tblDownloads->setItem(nextrow, Status, status);
     ui->tblDownloads->setItem(nextrow, Next, next);
+    ui->tblDownloads->setItem(nextrow, Total, total);
 }
 
 void MainWindow::settingsMenu( void ) {
@@ -259,6 +306,7 @@ void MainWindow::saveLinks( void ) {
         settings.setValue("status", ui->tblDownloads->item(i, Status)->text());
         settings.setValue("path", ui->tblDownloads->item(i, Path)->text());
         settings.setValue("next", ui->tblDownloads->item(i, Next)->text());
+        settings.setValue("total", ui->tblDownloads->item(i, Total)->text());
         settings.endGroup();
     }
     settings.endGroup();
@@ -275,7 +323,7 @@ void MainWindow::loadLinks( void ) {
             settings.endGroup();
             break;
         }
-        addLink(settings.value("link").toString(), settings.value("path").toString(), settings.value("status").toString(), settings.value("next").toInt());
+        addLink(settings.value("link").toString(), settings.value("path").toString(), settings.value("status").toString(), settings.value("next").toInt(), settings.value("total").toInt());
         settings.endGroup();
     }
     settings.endGroup();
