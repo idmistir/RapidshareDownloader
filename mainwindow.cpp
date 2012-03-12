@@ -265,7 +265,7 @@ void MainWindow::saveLinks( void ) {
 }
 
 void MainWindow::loadLinks( void ) {
-    ui->tblDownloads->clear();
+    ui->tblDownloads->clearContents();
     ui->tblDownloads->setRowCount(0);
     QSettings settings("NoOrganization", "RapidshareDownloader");
     settings.beginGroup("Links");
