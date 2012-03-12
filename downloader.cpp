@@ -8,7 +8,7 @@ Downloader::Downloader(QObject *parent) :
     manager = new QNetworkAccessManager(this);
     rsuser = "";
     rspass = "";
-    connect(this, SIGNAL(updateMainWindow(QString,QString,QString,QString,QString,QString)), window, SLOT(updateDownload(QString,QString,QString,QString,QString,QString)));
+    connect(this, SIGNAL(updateMainWindow(QString,QString,QString,QString,QString,QString,QString)), window, SLOT(updateDownload(QString,QString,QString,QString,QString,QString,QString)));
     loadSettings();
 }
 
@@ -233,5 +233,13 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
             }
         }
     }
-    emit updateMainWindow(currDownload->link, size, progress, unit, eta, status);
+    emit updateMainWindow(currDownload->link, size, progress, unit, eta, status, QString::number(bytesReceived));
+}
+
+void Downloader::pauseDownload( const QString &link ) {
+
+}
+
+void Downloader::stopDownload(const QString &link) {
+
 }

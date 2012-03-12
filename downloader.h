@@ -26,6 +26,10 @@ public:
     bool download(const QString &link, const QString &saveAs);
     bool downloadDirect(const QString &link);
 
+public slots:
+    void pauseDownload( const QString &link );
+    void stopDownload( const QString &link );
+
 private slots:
     void requestFinished( void );
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
@@ -33,7 +37,7 @@ private slots:
     void requestSslErrors(QList<QSslError> errors);
 
 signals:
-    void updateMainWindow(QString filename, QString size, QString progress, QString speed, QString eta, QString status);
+    void updateMainWindow(QString filename, QString size, QString progress, QString speed, QString eta, QString status, QString next);
 
 private:
     void loadSettings( void );

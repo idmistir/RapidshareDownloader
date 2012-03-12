@@ -10,6 +10,7 @@
 #include <QStringList>
 #include <QSettings>
 #include <QTableWidgetItem>
+#include <QModelIndexList>
 
 #include "downloader.h"
 #include "settingspanel.h"
@@ -28,10 +29,12 @@ public:
     ~MainWindow();
     
 public slots:
-    void updateDownload(QString filename, QString size = "", QString progress = "", QString speed = "", QString eta = "", QString status = "");
+    void updateDownload(QString filename, QString size = "", QString progress = "", QString speed = "", QString eta = "", QString status = "", QString next = "");
 
 signals:
     void startNewDownload( void );
+    void pauseDownload( const QString &link);
+    void stopDownload( const QString &link);
 
 private slots:
     void settingsMenu( void );
@@ -41,10 +44,15 @@ private slots:
     void btStop_clicked( void );
     void btMoveUp_clicked( void );
     void btMoveDown_clicked( void );
+    void btDel_clicked( void );
 
 private:
     void resizeEvent(QResizeEvent *);
     void loadSettings( void );
+    void saveLinks( void );
+    void loadLinks( void );
+    void addLink( const QString &link, const QString &saveAs, const QString &status = "", const int next = 0 );
+    void sortList(QModelIndexList &list, bool ascending = true);
 
     Downloader *downloader;
 
@@ -53,7 +61,7 @@ private:
     int concd, active;
     bool fastmode, autostart;
 
-    enum COLUMNS { FileName = 0, FileSize, Progress, Speed, ETA, Status, Path };
+    enum COLUMNS { FileName = 0, FileSize, Progress, Speed, ETA, Status, Path, Next };
 
     Ui::MainWindow *ui;
 };
