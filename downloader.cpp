@@ -170,8 +170,6 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
             emit updateMainWindow(currDownload->link, "", "", "", "", got, "", "");
         else
             emit updateMainWindow(currDownload->redirectedFrom, "", "", "", "", got, "", "");
-        delete currDownload;
-
         return;
     }
 
