@@ -53,7 +53,6 @@ private:
         QString filename;
         qint64 downloaded;
         qint64 total;
-        qint64 prev;
         QNetworkReply *reply;
         QFile *file;
         QTime *timer;

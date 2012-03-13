@@ -11,6 +11,7 @@
 #include <QSettings>
 #include <QTableWidgetItem>
 #include <QModelIndexList>
+#include <QClipboard>
 
 #include "downloader.h"
 #include "settingspanel.h"
@@ -49,6 +50,7 @@ private slots:
     void btMoveUp_clicked( void );
     void btMoveDown_clicked( void );
     void btDel_clicked( void );
+    void clipboard_dataChanged( void );
 
 private:
     void resizeEvent(QResizeEvent *);
@@ -61,6 +63,7 @@ private:
     Downloader *downloader;
 
     QAction *settings;
+    QClipboard *clipboard;
 
     int concd, active;
     bool fastmode, autostart;

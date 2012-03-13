@@ -50,6 +50,14 @@ AddLinksPanel::AddLinksPanel(QWidget *parent) :
     connect(tbPath, SIGNAL(textChanged(QString)), this, SLOT(tbPath_textChanged(QString)));
 }
 
+QTextEdit* AddLinksPanel::getTeLinks( void ) {
+    return teLinks;
+}
+
+QLineEdit* AddLinksPanel::getTbPath( void ) {
+    return tbPath;
+}
+
 void AddLinksPanel::resizeToContents( void ) {
     int resizeFactor = teLinks->document()->size().width() + teLinks->geometry().left() + 5;
     this->resize(resizeFactor, this->height());

@@ -15,6 +15,8 @@ MainWindow::MainWindow(QWidget *parent) :
     settings = new QAction(this);
     settings->setText(tr("Settings"));
 
+    clipboard = QApplication::clipboard();
+
     downloader = new Downloader(this);
 
     ui->tblDownloads->setColumnHidden(Next, true);
@@ -34,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(startNewDownload()), this, SLOT(btStart_clicked()));
     connect(this, SIGNAL(pauseDownload(QString)), downloader, SLOT(pauseDownload(QString)));
     connect(this, SIGNAL(stopDownload(QString)), downloader, SLOT(stopDownload(QString)));
+    connect(clipboard, SIGNAL(dataChanged()), this, SLOT(clipboard_dataChanged()));
 
     loadSettings();
     loadLinks();
@@ -43,6 +46,30 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::clipboard_dataChanged( void ) {
+    //todo: improve
+    //if (clipboard->text().contains(QRegExp("/^https?\\:\\/\\/www\\.rapidshare\\.com\\/files\\//i", Qt::CaseInsensitive)) || clipboard->text().contains(QRegExp("/^https?\\:\\/\\/rapidshare\\.com\\/files\\//i", Qt::CaseInsensitive))) {
+    if (clipboard->text().split('/n').at(0).contains("rapidshare.com")) {
+        AddLinksPanel *panel = new AddLinksPanel(this);
+        panel->getTeLinks()->setText(clipboard->text());
+        if (panel->getTbPath()->text().isEmpty()) {
+            if (!panel->exec()) {
+                panel->deleteLater();
+                return;
+            }
+        }
+        QStringList links = panel->getLinks()->toPlainText().split('\n');
+        QString fpath = panel->getPath();
+        for (int i = 0; i < links.length(); i++) {
+            addLink(links.at(i), fpath);
+        }
+        saveLinks();
+        panel->deleteLater();
+        if (autostart)
+            emit startNewDownload();
+    }
 }
 
 bool MainWindow::isDownloadPaused(const QString &link) {
@@ -235,6 +262,7 @@ void MainWindow::addLinksMenu( void ) {
         }
         saveLinks();
     }
+    panel->deleteLater();
 }
 
 void MainWindow::addLink( const QString &link, const QString &saveAs, const QString &statusText, const int nextText, const int totalText ) {
@@ -294,6 +322,7 @@ void MainWindow::settingsMenu( void ) {
     SettingsPanel *panel = new SettingsPanel(this);
     if (panel->exec())
         loadSettings();
+    panel->deleteLater();
 }
 
 void MainWindow::saveLinks( void ) {

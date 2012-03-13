@@ -223,7 +223,7 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
 
     double speed = currDownload->downloaded * 1000.0 / currDownload->timer->elapsed();
 
-    int ttime = (currDownload->downloaded / speed);
+    int ttime = (currDownload->total / speed);
     int tsec = ttime - (currDownload->timer->elapsed() / 1000); // still need to mod % 60
     int tmin = tsec / 60;
     int thor = tmin / 60;

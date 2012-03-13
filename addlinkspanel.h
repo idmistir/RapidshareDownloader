@@ -19,6 +19,10 @@ public:
     
     QTextDocument *getLinks( void );
     QString       getPath( void );
+
+    QTextEdit *getTeLinks( void );
+    QLineEdit *getTbPath( void );
+
 private slots:
     void resizeToContents( void );
     void suggestPath( void );
