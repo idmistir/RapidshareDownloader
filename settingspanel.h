@@ -17,7 +17,7 @@
 #include <QAction>
 #include <QCheckBox>
 #include "downloader.h"
-#include "fontcomboboxdelegate.h"
+#include "comboboxdelegate.h"
 
 class SettingsPanel : public QDialog
 {

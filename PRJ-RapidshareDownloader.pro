@@ -13,15 +13,17 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     settingspanel.cpp \
-    fontcomboboxdelegate.cpp \
     addlinkspanel.cpp \
-    downloader.cpp
+    downloader.cpp \
+    comboboxdelegate.cpp \
+    mlineedit.cpp
 
 HEADERS  += mainwindow.h \
     settingspanel.h \
-    fontcomboboxdelegate.h \
     addlinkspanel.h \
-    downloader.h
+    downloader.h \
+    comboboxdelegate.h \
+    mlineedit.h
 
 FORMS    += mainwindow.ui
 

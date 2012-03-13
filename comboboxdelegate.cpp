@@ -1,4 +1,4 @@
-#include "fontcomboboxdelegate.h"
+#include "comboboxdelegate.h"
 
 ComboBoxDelegate::ComboBoxDelegate(int choiceColumn, QObject *parent) :
     QItemDelegate(parent)
