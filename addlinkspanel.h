@@ -10,6 +10,9 @@
 #include <QFileDialog>
 #include <QSettings>
 #include <QDir>
+#include <QComboBox>
+
+#include "mlineedit.h"
 
 class AddLinksPanel : public QDialog
 {
@@ -28,13 +31,17 @@ private slots:
     void suggestPath( void );
     void findPath( void );
     void tbPath_textChanged( QString path );
+    void tbNewRulePath_focused( void );
+    void accepted();
 
 private:
-    QLabel *lbAddLinks, *lbSaveTo;
+    QLabel *lbAddLinks, *lbSaveTo, *lbNewRule, *lb;
     QTextEdit *teLinks;
-    QLineEdit *tbPath;
+    QLineEdit *tbPath, *tbNewRuleName;
+    MLineEdit *tbNewRulePath;
     QPushButton *btFind, *btAdd, *btCancel;
-    QBoxLayout *layoutHSave, *layoutHButtons, *layoutVAddLinks;
+    QBoxLayout *layoutHSave, *layoutHButtons, *layoutVAddLinks, *layoutHNewRuleLb, *layoutHNewRule;
+    QComboBox *cmbNewRuleType;
 };
 
 #endif // ADDLINKSPANEL_H

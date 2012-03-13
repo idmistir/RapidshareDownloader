@@ -5,26 +5,41 @@ AddLinksPanel::AddLinksPanel(QWidget *parent) :
 {
     lbAddLinks = new QLabel(this);
     lbSaveTo = new QLabel(this);
+    lbNewRule = new QLabel(this);
 
     teLinks = new QTextEdit(this);
     tbPath = new QLineEdit(this);
+    tbNewRuleName = new QLineEdit(this);
+    tbNewRulePath = new MLineEdit(this);
 
     btFind = new QPushButton(this);
     btAdd = new QPushButton(this);
     btCancel = new QPushButton(this);
 
+    cmbNewRuleType = new QComboBox(this);
+
     layoutHSave = new QBoxLayout(QBoxLayout::LeftToRight);
     layoutHButtons = new QBoxLayout(QBoxLayout::LeftToRight);
     layoutVAddLinks = new QBoxLayout(QBoxLayout::Down);
+    layoutHNewRuleLb = new QBoxLayout(QBoxLayout::LeftToRight);
+    layoutHNewRule = new QBoxLayout(QBoxLayout::LeftToRight);
 
     lbAddLinks->setText(tr("Add Links"));
     lbSaveTo->setText(tr("Save To"));
+    lbNewRule->setText(tr("New Rule:"));
 
     btFind->setText(tr("Find"));
     btAdd->setText(tr("Add"));
     btCancel->setText(tr("Cancel"));
 
+    cmbNewRuleType->addItem(tr("Begins With"));
+    cmbNewRuleType->addItem(tr("Contains"));
+
     teLinks->setWordWrapMode(QTextOption::NoWrap);
+
+    tbNewRuleName->setPlaceholderText("Data");
+    tbNewRulePath->setPlaceholderText("Destination Path");
+    tbNewRulePath->setToolTip("Focus in for Find dialog");
 
     layoutHSave->addWidget(lbSaveTo);
     layoutHSave->addWidget(tbPath, 1);
@@ -33,9 +48,16 @@ AddLinksPanel::AddLinksPanel(QWidget *parent) :
     layoutHButtons->addWidget(btAdd);
     layoutHButtons->addWidget(btCancel);
 
+    layoutHNewRuleLb->addWidget(lbNewRule, 1, Qt::AlignHCenter);
+    layoutHNewRule->addWidget(cmbNewRuleType);
+    layoutHNewRule->addWidget(tbNewRuleName);
+    layoutHNewRule->addWidget(tbNewRulePath);
+
     layoutVAddLinks->addWidget(lbAddLinks, 0, Qt::AlignHCenter);
     layoutVAddLinks->addWidget(teLinks);
     layoutVAddLinks->addLayout(layoutHSave);
+    layoutVAddLinks->addLayout(layoutHNewRuleLb);
+    layoutVAddLinks->addLayout(layoutHNewRule);
     layoutVAddLinks->addLayout(layoutHButtons);
 
     this->setLayout(layoutVAddLinks);
@@ -45,9 +67,43 @@ AddLinksPanel::AddLinksPanel(QWidget *parent) :
     connect(teLinks, SIGNAL(textChanged()), this, SLOT(resizeToContents()));
     connect(teLinks, SIGNAL(textChanged()), this, SLOT(suggestPath()));
     connect(btFind, SIGNAL(clicked()), this, SLOT(findPath()));
-    connect(btAdd, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(btAdd, SIGNAL(clicked()), this, SLOT(accepted()));
     connect(btCancel, SIGNAL(clicked()), this, SLOT(reject()));
     connect(tbPath, SIGNAL(textChanged(QString)), this, SLOT(tbPath_textChanged(QString)));
+    connect(tbNewRulePath, SIGNAL(focused()), this, SLOT(tbNewRulePath_focused()));
+
+    this->setWindowTitle("RapidshareDownloader - Add Links");
+    this->setTabOrder(teLinks, tbPath);
+    this->setTabOrder(tbPath, btFind);
+    this->setTabOrder(btFind, cmbNewRuleType);
+    this->setTabOrder(cmbNewRuleType, tbNewRuleName);
+    this->setTabOrder(tbNewRuleName, tbNewRulePath);
+    this->setTabOrder(tbNewRulePath, btAdd);
+    this->setTabOrder(btAdd, btCancel);
+}
+
+void AddLinksPanel::accepted( void ) {
+    if (!tbNewRuleName->text().isEmpty() && !tbNewRulePath->text().isEmpty()) {
+        QSettings settings("NoOrganization", "RapidshareDownloader");
+        settings.beginGroup("Settings");
+        for (int i = 0;; i++) {
+            settings.beginGroup(QString("Preference#%1").arg(i));
+            if (settings.value("1").toString().isEmpty()) {
+                settings.remove("");
+                settings.setValue("1", cmbNewRuleType->itemText(cmbNewRuleType->currentIndex()));
+                settings.setValue("2", tbNewRuleName->text());
+                settings.setValue("3", tbNewRulePath->text());
+                break;
+            }
+            settings.endGroup();
+        }
+        settings.endGroup();
+    }
+    accept();
+}
+
+void AddLinksPanel::tbNewRulePath_focused( void ) {
+    tbNewRulePath->setText(QFileDialog::getExistingDirectory(this, tr("Locate destination directory"), "/"));
 }
 
 QTextEdit* AddLinksPanel::getTeLinks( void ) {
@@ -60,6 +116,12 @@ QLineEdit* AddLinksPanel::getTbPath( void ) {
 
 void AddLinksPanel::resizeToContents( void ) {
     int resizeFactor = teLinks->document()->size().width() + teLinks->geometry().left() + 5;
+    if (resizeFactor < this->width()) {
+        if (resizeFactor < this->sizeHint().width())
+            return;
+        else
+            resizeFactor = this->sizeHint().width();
+    }
     this->resize(resizeFactor, this->height());
 }
 
@@ -105,6 +167,12 @@ void AddLinksPanel::suggestPath( void ) {
                 tbPath->setText(settings.value("3").toString());
         }
         settings.endGroup();
+    }
+    if (!tbPath->text().isEmpty()) {
+        lbNewRule->setVisible(false);
+        tbNewRuleName->setVisible(false);
+        tbNewRulePath->setVisible(false);
+        cmbNewRuleType->setVisible(false);
     }
 }
 
