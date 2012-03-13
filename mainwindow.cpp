@@ -135,7 +135,7 @@ void MainWindow::btDel_clicked( void ) {
     int selected = list.size();
     if (selected) {
         for (int i = 0; i < selected; i++) {
-            if (ui->tblDownloads->item(list.at(i).row(), Status)->text() == tr("DOWNLOADING")) {
+            if (ui->tblDownloads->item(list.at(i).row(), Status)->text() == tr("DOWNLOADING") || ui->tblDownloads->item(list.at(i).row(), Status)->text() == tr("QUEUING")) {
                 active--;
                 emit stopDownload(ui->tblDownloads->item(list.at(i).row(), FileName)->text());
                 ui->tblDownloads->removeRow(list.at(i).row());

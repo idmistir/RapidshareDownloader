@@ -100,6 +100,15 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
     connect(delRow, SIGNAL(triggered()), this, SLOT(removeRow()));
     connect(btRsCheckAccount, SIGNAL(clicked()), this, SLOT(checkPremium()));
 
+    this->setTabOrder(tbRsUser, tbRsPass);
+    this->setTabOrder(tbRsPass, btRsCheckAccount);
+    this->setTabOrder(btRsCheckAccount, tbConcDownloads);
+    this->setTabOrder(tbConcDownloads, cbFastMode);
+    this->setTabOrder(cbFastMode, cbAutoStart);
+    this->setTabOrder(cbAutoStart, tblN2P);
+    this->setTabOrder(tblN2P, btOk);
+    this->setTabOrder(btOk, btCancel);
+
     loadSettings();
     return;
 }
@@ -130,13 +139,14 @@ void SettingsPanel::findPathForCell(int row, int column) {
 void SettingsPanel::saveSettings( void ) {
     QSettings settings("NoOrganization", "RapidshareDownloader");
     settings.beginGroup("Settings");
+    settings.remove("");
     settings.setValue("rsuser", tbRsUser->text());
     settings.setValue("rspass", tbRsPass->text());
     settings.setValue("concd", tbConcDownloads->text());
     settings.setValue("fastmode", cbFastMode->isChecked() ? "true" : "false");
     settings.setValue("autostart", cbAutoStart->isChecked() ? "true" : "false");
     for (int row = 0; row < tblN2P->rowCount(); row++) {
-        settings.beginGroup(QString("Preference#%1").arg(row));
+        settings.beginGroup(QString("Preference #%1").arg(row));
         settings.remove("");
         settings.setValue("1", tblN2P->item(row, 0)->data(Qt::DisplayRole).toString());
         settings.setValue("2", tblN2P->item(row, 1)->text());
@@ -156,7 +166,7 @@ void SettingsPanel::loadSettings( void ) {
     cbFastMode->setChecked(settings.value("fastmode").toBool());
     cbAutoStart->setChecked(settings.value("autostart").toBool());
     for (int currentPref = 0;; currentPref++) {
-        settings.beginGroup(QString("Preference#%1").arg(currentPref));
+        settings.beginGroup(QString("Preference #%1").arg(currentPref));
         if (settings.value("1").isNull()) {
             settings.endGroup();
             break;
