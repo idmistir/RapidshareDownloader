@@ -31,7 +31,6 @@ public slots:
     void stopDownload( const QString &link );
 
 private slots:
-    void requestFinished( void );
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void requestError(QNetworkReply::NetworkError nerror);
     void requestSslErrors(QList<QSslError> errors);
@@ -40,11 +39,6 @@ signals:
     void updateMainWindow(QString filename, QString size, QString progress, QString speed, QString eta, QString status, QString next, QString total);
 
 private:
-    void loadSettings( void );
-    QUrl redirectUrl(const QUrl& possibleRedirectUrl, const QUrl& oldRedirectUrl) const;
-
-    QNetworkAccessManager *manager;
-    
     struct DOWNLOADINFO {
         QString link;
         QString redirectedFrom;
@@ -55,13 +49,19 @@ private:
         qint64 total;
         QNetworkReply *reply;
         QFile *file;
-        QTime *timer;
+        QTime timer;
     };
 
+    QNetworkAccessManager *manager;
     QList<DOWNLOADINFO*> downloads;
-
     QString rsuser, rspass;
     MainWindow *window;
+
+    void loadSettings( void );
+    int  getDownloadIndex( const QNetworkReply *reply );
+    int  getDownloadIndex( const QString &link );
+    void destroyDownload( DOWNLOADINFO* download, bool removeFile );
+    bool isRedirect( QString &link );
 };
 
 #endif // DOWNLOADER_H

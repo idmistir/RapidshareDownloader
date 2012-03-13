@@ -76,32 +76,13 @@ bool Downloader::checkAccount(const QString &user, const QString &pass) {
 //         this error message if you directly call the correct server. If you do not know the server ID, you just have to parse for this error and send your request
 //         again to the correct server.
 
-
 bool Downloader::download(const QString &link, const QString &saveAs) {
-    //Check for redirects
-    //Seriously nokia, asynchronous APIs are not always the best.
-    QNetworkRequest rq(link);
-    QNetworkReply *networkReply = manager->get(rq);
-    QEventLoop loop;
-    connect(networkReply, SIGNAL(finished()), &loop, SLOT(quit()));
-    loop.exec();
-
-    QVariant possibleRedirectUrl =
-        networkReply->attribute(QNetworkRequest::RedirectionTargetAttribute);
-
-    QUrl urlRedirectedTo = redirectUrl(possibleRedirectUrl.toUrl(), urlRedirectedTo);
-    QString llink = link;
     DOWNLOADINFO *newDownload = new DOWNLOADINFO;
+    newDownload->redirectedFrom = "";
 
-    if(!urlRedirectedTo.isEmpty()) {
-        llink = urlRedirectedTo.toString();
+    QString llink = link;
+    if (isRedirect(llink))
         newDownload->redirectedFrom = link;
-    } else {
-        urlRedirectedTo.clear();
-        newDownload->redirectedFrom = "";
-    }
-    //todo: check if redirect is rapidshare
-
 
     newDownload->link = llink;
     newDownload->path = saveAs;
@@ -112,13 +93,13 @@ bool Downloader::download(const QString &link, const QString &saveAs) {
     newDownload->fileid = parts.at(parts.count() - 2);
     newDownload->filename = parts.last();
 
-    QUrl url;
+    QUrl url = QString("https://api.rapidshare.com/cgi-bin/rsapi.cgi?sub=download&fileid=%1&filename=%2&login=%3&password=%4").arg(newDownload->fileid).arg(newDownload->filename).arg(rsuser).arg(rspass);
     if (window->isDownloadPaused(link)) {
         newDownload->downloaded = window->downloadLast(link);
         newDownload->total = window->downloadTotal(link);
         url = QString("https://api.rapidshare.com/cgi-bin/rsapi.cgi?sub=download&fileid=%1&filename=%2&login=%3&password=%4&position=%5").arg(newDownload->fileid).arg(newDownload->filename).arg(rsuser).arg(rspass).arg(newDownload->downloaded);
-    } else
-        url = QString("https://api.rapidshare.com/cgi-bin/rsapi.cgi?sub=download&fileid=%1&filename=%2&login=%3&password=%4").arg(newDownload->fileid).arg(newDownload->filename).arg(rsuser).arg(rspass);
+    }
+
     QNetworkRequest request(url);
     request.setSslConfiguration(QSslConfiguration::defaultConfiguration());
 
@@ -146,40 +127,10 @@ bool Downloader::download(const QString &link, const QString &saveAs) {
     connect(newDownload->reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
     connect(newDownload->reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(requestError(QNetworkReply::NetworkError)));
     connect(newDownload->reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(requestSslErrors(QList<QSslError>)));
-    newDownload->timer = new QTime();
-    newDownload->timer->start();
+    newDownload->timer = QTime();
+    newDownload->timer.start();
     downloads.append(newDownload);
     return true;
-}
-
-void Downloader::requestSslErrors(QList<QSslError> errors) {
-    for (int i = 0; i < errors.length(); i++) {
-        QSslError err = errors.at(i);
-        QNetworkReply *reply = qobject_cast<QNetworkReply*>(QObject::sender());
-        reply->ignoreSslErrors();
-    }
-}
-
-void Downloader::requestError(QNetworkReply::NetworkError nerror) {
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(QObject::sender());
-    QString error = reply->errorString();
-    //todo: handle + display error
-}
-
-void Downloader::requestFinished( void ) {
-    //fallback
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    DOWNLOADINFO *currDownload;
-    for (int i = 0; i < downloads.count(); i++) {
-        if (((DOWNLOADINFO*)downloads.at(i))->reply == reply) {
-            currDownload = downloads.at(i);
-            currDownload->file->write(reply->readAll());
-            currDownload->file->close();
-            currDownload->file->deleteLater();
-            currDownload->reply->deleteLater();
-            downloads.removeAt(i);
-        }
-    }
 }
 
 void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
@@ -187,13 +138,11 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(QObject::sender());
     QString progress, size, unit;
 
-    DOWNLOADINFO *currDownload = NULL;
-    for (int i = 0; i < downloads.count(); i++) {
-        if (((DOWNLOADINFO*)downloads.at(i))->reply == reply)
-            currDownload = downloads.at(i);
-    }
-
-    if (currDownload == NULL)
+    DOWNLOADINFO *currDownload;
+    int downloadIndex = getDownloadIndex(reply);
+    if (downloadIndex >= 0)
+        currDownload = downloads.at(downloadIndex);
+    else
         return;
 
     QByteArray got = reply->readAll();
@@ -213,18 +162,28 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
         connect(currDownload->reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
         connect(currDownload->reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(requestError(QNetworkReply::NetworkError)));
         connect(currDownload->reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(requestSslErrors(QList<QSslError>)));
-        currDownload->timer->restart();
+        currDownload->timer.restart();
+        return;
+    } else if (got.startsWith("ERROR:")) {
+        destroyDownload(currDownload, true);
+        if (currDownload->redirectedFrom.isEmpty())
+            emit updateMainWindow(currDownload->link, "", "", "", "", got, "", "");
+        else
+            emit updateMainWindow(currDownload->redirectedFrom, "", "", "", "", got, "", "");
+        delete currDownload;
+
         return;
     }
+
     currDownload->file->write(got);
     currDownload->downloaded += got.length();
     if (!currDownload->total)
         currDownload->total = bytesTotal;
 
-    double speed = currDownload->downloaded * 1000.0 / currDownload->timer->elapsed();
+    double speed = currDownload->downloaded * 1000.0 / currDownload->timer.elapsed();
 
     int ttime = (currDownload->total / speed);
-    int tsec = ttime - (currDownload->timer->elapsed() / 1000); // still need to mod % 60
+    int tsec = ttime - (currDownload->timer.elapsed() / 1000); // still need to mod % 60
     int tmin = tsec / 60;
     int thor = tmin / 60;
     QTime time(thor, tmin, tsec % 60);
@@ -240,12 +199,11 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
         unit = QString::number((qint64)speed) + "MB/s";
     }
 
+    progress = "0%";
     if (currDownload->total)
         progress = QString::number((qint64)(((double)currDownload->downloaded / (double)currDownload->total) * 100)) + "%";
-    else
-        progress = "0%";
 
-    double bytes = currDownload->downloaded;
+    double bytes = currDownload->total;
     for (int i = 0;; i++) {
         if (bytes > 1024)
             bytes /= 1024;
@@ -276,15 +234,8 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
 
     QString status = tr("DOWNLOADING");
     if (currDownload->downloaded == currDownload->total) {
-        for (int i = 0; i < downloads.count(); i++) {
-            if (((DOWNLOADINFO*)downloads.at(i))->reply == reply) {
-                currDownload->file->close();
-                currDownload->file->deleteLater();
-                currDownload->reply->deleteLater();
-                downloads.removeAt(i);
-                status = tr("COMPLETED");
-            }
-        }
+        destroyDownload(currDownload, false); // take caution, does abort break something in this case?
+        status = tr("COMPLETED");
     }
     if (currDownload->redirectedFrom.isEmpty())
         emit updateMainWindow(currDownload->link, size, progress, unit, eta, status, QString::number(currDownload->downloaded), QString::number(currDownload->total));
@@ -293,41 +244,81 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
 }
 
 void Downloader::pauseDownload( const QString &link ) {
-    DOWNLOADINFO *currDownload = NULL;
-    for (int i = 0; i < downloads.count(); i++) {
-        if (((DOWNLOADINFO*)downloads.at(i))->link == link || ((DOWNLOADINFO*)downloads.at(i))->redirectedFrom == link) {
-            currDownload = downloads.at(i);
-            currDownload->reply->abort();
-            currDownload->reply->deleteLater();
-            currDownload->file->close();
-            currDownload->file->deleteLater();
-            downloads.removeAt(i);
-            QString status = tr("PAUSED");
-            emit updateMainWindow(link, "", "", "", "", status, "", "");
-        }
+    int downloadIndex = getDownloadIndex(link);
+    if (downloadIndex >= 0) {
+        destroyDownload(downloads.at(downloadIndex), false);
+        emit updateMainWindow(link, "", "", "", "", tr("PAUSED"), "", "");
     }
+    return;
 }
 
 void Downloader::stopDownload(const QString &link) {
-    DOWNLOADINFO *currDownload = NULL;
-    for (int i = 0; i < downloads.count(); i++) {
-        if (((DOWNLOADINFO*)downloads.at(i))->link == link || ((DOWNLOADINFO*)downloads.at(i))->redirectedFrom == link) {
-            currDownload = downloads.at(i);
-            currDownload->reply->abort();
-            currDownload->reply->deleteLater();
-            currDownload->file->close();
-            currDownload->file->remove();
-            currDownload->file->deleteLater();
-            downloads.removeAt(i);
-            QString status = tr("CANCELLED");
-            emit updateMainWindow(link, "", "", "", "", status, "", "");
-        }
+    int downloadIndex = getDownloadIndex(link);
+    if (downloadIndex >= 0) {
+        destroyDownload(downloads.at(downloadIndex), true);
+        emit updateMainWindow(link, "", "", "", "", tr("CANCELLED"), "", "");
+    }
+    return;
+}
+
+void Downloader::destroyDownload(DOWNLOADINFO *download, bool removeFile) {
+    download->reply->abort();
+    download->reply->deleteLater();
+    download->file->close();
+    if (removeFile)
+        download->file->remove();
+    download->file->deleteLater();
+    downloads.removeAt(getDownloadIndex(download->link));
+    delete download;
+}
+
+bool Downloader::isRedirect( QString &link ) {
+    //todo: check if redirect is rapidshare
+    QUrl urlRedirectedTo = QUrl("");
+    QNetworkRequest request(link);
+    QNetworkReply *networkReply = manager->get(request);
+
+    QEventLoop loop;
+    connect(networkReply, SIGNAL(finished()), &loop, SLOT(quit()));
+    loop.exec();
+
+    QUrl possibleRedirectUrl = networkReply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+
+    if(!possibleRedirectUrl.isEmpty())
+        urlRedirectedTo = possibleRedirectUrl;
+
+    if(urlRedirectedTo.isEmpty())
+        return false;
+    link = urlRedirectedTo.toString();
+    return true;
+}
+
+void Downloader::requestSslErrors(QList<QSslError> errors) {
+    for (int i = 0; i < errors.length(); i++) {
+        QSslError err = errors.at(i);
+        QNetworkReply *reply = qobject_cast<QNetworkReply*>(QObject::sender());
+        reply->ignoreSslErrors();
     }
 }
 
-QUrl Downloader::redirectUrl(const QUrl& possibleRedirectUrl, const QUrl& oldRedirectUrl) const {
-    QUrl redirectUrl;
-    if(!possibleRedirectUrl.isEmpty() && possibleRedirectUrl != oldRedirectUrl)
-        redirectUrl = possibleRedirectUrl;
-    return redirectUrl;
+void Downloader::requestError(QNetworkReply::NetworkError nerror) {
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(QObject::sender());
+    QString error = reply->errorString();
+    //todo: handle + display error
+}
+
+int Downloader::getDownloadIndex(const QNetworkReply *reply) {
+    for (int i = 0; i < downloads.count(); i++) {
+        if (((DOWNLOADINFO*)downloads.at(i))->reply == reply)
+            return i;
+    }
+    return -1;
+}
+
+int Downloader::getDownloadIndex(const QString &link) {
+    for (int i = 0; i < downloads.count(); i++) {
+        if (((DOWNLOADINFO*)downloads.at(i))->link == link || ((DOWNLOADINFO*)downloads.at(i))->redirectedFrom == link)
+            return i;
+    }
+    return -1;
 }
