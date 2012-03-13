@@ -165,11 +165,11 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
         currDownload->timer.restart();
         return;
     } else if (got.startsWith("ERROR:")) {
-        destroyDownload(currDownload, true);
         if (currDownload->redirectedFrom.isEmpty())
-            emit updateMainWindow(currDownload->link, "", "", "", "", got, "", "");
+            emit updateMainWindow(currDownload->link, "", "", "", "", got.split('<').at(0), "", "");
         else
-            emit updateMainWindow(currDownload->redirectedFrom, "", "", "", "", got, "", "");
+            emit updateMainWindow(currDownload->redirectedFrom, "", "", "", "", got.split('<').at(0), "", "");
+        destroyDownload(currDownload, true);
         return;
     }
 
@@ -231,14 +231,16 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     }
 
     QString status = tr("DOWNLOADING");
-    if (currDownload->downloaded == currDownload->total) {
-        destroyDownload(currDownload, false); // take caution, does abort break something in this case?
+    if (currDownload->downloaded == currDownload->total)
         status = tr("COMPLETED");
-    }
+
     if (currDownload->redirectedFrom.isEmpty())
         emit updateMainWindow(currDownload->link, size, progress, unit, eta, status, QString::number(currDownload->downloaded), QString::number(currDownload->total));
     else
         emit updateMainWindow(currDownload->redirectedFrom, size, progress, unit, eta, status, QString::number(currDownload->downloaded), QString::number(currDownload->total));
+
+    if (currDownload->downloaded == currDownload->total)
+        destroyDownload(currDownload, false); // take caution, does abort break something in this case?
 }
 
 void Downloader::pauseDownload( const QString &link ) {
