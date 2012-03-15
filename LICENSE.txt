@@ -1,0 +1,7 @@
+Until a more proper license file is uploaded, I declare that you cannot use this code anywhere unless credits noted at the end of this file are attached along with the source code.
+
+Credits:
+
+Written by:
+Dimitris Preketes
+d.preketes@gmail.com
