@@ -26,6 +26,7 @@ public:
     bool download(const QString &link, const QString &saveAs);
     bool downloadDirect(const QString &link);
 
+    enum DOWNLOADSTATES { WAITING = 0, QUEUING, DOWNLOADING, COMPLETED, PAUSED, CANCELLED, ERROR };
 public slots:
     void pauseDownload( const QString &link );
     void stopDownload( const QString &link );
@@ -36,7 +37,7 @@ private slots:
     void requestSslErrors(QList<QSslError> errors);
 
 signals:
-    void updateMainWindow(QString filename, QString size, QString progress, QString speed, QString eta, QString status, QString next, QString total);
+    void updateMainWindow(QString filename, QString size, QString progress, QString speed, QString eta, int state, QString next, QString total, QString errorString);
 
 private:
     struct DOWNLOADINFO {
@@ -50,6 +51,8 @@ private:
         QNetworkReply *reply;
         QFile *file;
         QTime timer;
+        qint64 length;
+        double speed;
     };
 
     QNetworkAccessManager *manager;

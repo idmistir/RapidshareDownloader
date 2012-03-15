@@ -16,16 +16,24 @@ SOURCES += main.cpp\
     addlinkspanel.cpp \
     downloader.cpp \
     comboboxdelegate.cpp \
-    mlineedit.cpp
+    mlineedit.cpp \
+    progressbardelegate.cpp \
+    aboutbox.cpp
 
 HEADERS  += mainwindow.h \
     settingspanel.h \
     addlinkspanel.h \
     downloader.h \
     comboboxdelegate.h \
-    mlineedit.h
+    mlineedit.h \
+    progressbardelegate.h \
+    aboutbox.h
 
 FORMS    += mainwindow.ui
 
 RESOURCES += \
     Resources.qrc
+
+OTHER_FILES += \
+    LICENSE.txt \
+    README.txt

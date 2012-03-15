@@ -12,13 +12,20 @@
 #include <QTableWidgetItem>
 #include <QModelIndexList>
 #include <QClipboard>
+#include <QDesktopServices>
+#include <QSystemTrayIcon>
+#include <QEvent>
+#include <QMenu>
+#include <QTimer>
 
 #include "downloader.h"
 #include "settingspanel.h"
 #include "addlinkspanel.h"
+#include "progressbardelegate.h"
+#include "aboutbox.h"
 
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow
@@ -29,12 +36,14 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     
-    bool isDownloadPaused(const QString &link);
+    enum DOWNLOADSTATES { WAITING = 0, QUEUING, DOWNLOADING, COMPLETED, PAUSED, CANCELLED, ERROR };
+
+    int  downloadState(const QString &link);
     int  downloadLast(const QString &link);
     int  downloadTotal(const QString &link);
 
 public slots:
-    void updateDownload(QString filename, QString size = "", QString progress = "", QString speed = "", QString eta = "", QString status = "", QString next = "", QString total = "");
+    void updateDownload(QString filename, QString size = "", QString progress = "", QString speed = "", QString eta = "", int state = -1, QString next = "", QString total = "", QString errorString = "ERROR: Generic Error");
 
 signals:
     void startNewDownload( void );
@@ -51,24 +60,29 @@ private slots:
     void btMoveDown_clicked( void );
     void btDel_clicked( void );
     void clipboard_dataChanged( void );
+    void about_clicked( void );
+    void openTargetDirectory( void );
+    void aboutToQuit( void );
+    void changeEvent(QEvent *);
 
 private:
     void resizeEvent(QResizeEvent *);
     void loadSettings( void );
     void saveLinks( void );
     void loadLinks( void );
-    void addLink( const QString &link, const QString &saveAs, const QString &status = "", const int nextText = 0, const int totalText = 0 );
+    void addLink( const QString &link, const QString &saveAs, const int stateValue = -1, const int nextText = 0, const int totalText = 0);
     void sortList(QModelIndexList &list, bool ascending = true);
 
     Downloader *downloader;
-
-    QAction *settings;
+    QAction *settings, *about, *openInBrowser, *trayActionShow, *trayActionExit;
     QClipboard *clipboard;
+    QSystemTrayIcon *trayIcon;
+    QMenu *trayMenu;
 
     int concd, active;
-    bool fastmode, autostart;
+    bool fastmode, autostart, startminimized;
 
-    enum COLUMNS { FileName = 0, FileSize, Progress, Speed, ETA, Status, Path, Next, Total };
+    enum COLUMNS { FileName = 0, FileSize, Progress, Speed, ETA, Status, Path, Next, Total, DownloadState };
 
     Ui::MainWindow *ui;
 };

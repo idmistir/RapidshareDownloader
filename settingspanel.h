@@ -39,14 +39,14 @@ private slots:
 
 private:
     QLabel *lbSettings, *lbRsHeader, *lbRsUser, *lbRsPass, *lbRsChecked, *lbConcDownloads,
-           *lbNameToPath, *lbLinkContains, *lbSuggestedPath, *lbFastMode, *lbAutoStart;
+           *lbNameToPath, *lbLinkContains, *lbSuggestedPath;
     QLineEdit *tbRsUser, *tbRsPass, *tbConcDownloads;
     QPushButton *btOk, *btCancel, *btRsCheckAccount;
     QGridLayout *layoutRs;
     QBoxLayout *layoutSettings, *layoutHButtons;
     QTableWidget *tblN2P;
     QAction *addRow, *delRow;
-    QCheckBox *cbFastMode, *cbAutoStart;
+    QCheckBox *cbFastMode, *cbAutoStart, *cbStartMinimized;
 
     enum COLUMNS {Order = 0, Tag, Path};
 };

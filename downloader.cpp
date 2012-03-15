@@ -8,7 +8,7 @@ Downloader::Downloader(QObject *parent) :
     manager = new QNetworkAccessManager(this);
     rsuser = "";
     rspass = "";
-    connect(this, SIGNAL(updateMainWindow(QString,QString,QString,QString,QString,QString,QString,QString)), window, SLOT(updateDownload(QString,QString,QString,QString,QString,QString,QString,QString)));
+    connect(this, SIGNAL(updateMainWindow(QString,QString,QString,QString,QString,int,QString,QString,QString)), window, SLOT(updateDownload(QString,QString,QString,QString,QString,int,QString,QString,QString)));
     loadSettings();
 }
 
@@ -88,13 +88,15 @@ bool Downloader::download(const QString &link, const QString &saveAs) {
     newDownload->path = saveAs;
     newDownload->downloaded = 0;
     newDownload->total = 0;
+    newDownload->length = 0;
 
     QStringList parts = llink.split('/');
     newDownload->fileid = parts.at(parts.count() - 2);
     newDownload->filename = parts.last();
 
     QUrl url = QString("https://api.rapidshare.com/cgi-bin/rsapi.cgi?sub=download&fileid=%1&filename=%2&login=%3&password=%4").arg(newDownload->fileid).arg(newDownload->filename).arg(rsuser).arg(rspass);
-    if (window->isDownloadPaused(link)) {
+    int state = window->downloadState(link);
+    if (state == PAUSED) {
         newDownload->downloaded = window->downloadLast(link);
         newDownload->total = window->downloadTotal(link);
         url = QString("https://api.rapidshare.com/cgi-bin/rsapi.cgi?sub=download&fileid=%1&filename=%2&login=%3&password=%4&position=%5").arg(newDownload->fileid).arg(newDownload->filename).arg(rsuser).arg(rspass).arg(newDownload->downloaded);
@@ -106,7 +108,7 @@ bool Downloader::download(const QString &link, const QString &saveAs) {
     QString localFileName = saveAs + '\\' + newDownload->filename;
 
     newDownload->file = new QFile(localFileName);
-    if (window->isDownloadPaused(link)) {
+    if (state == PAUSED) {
         if (!newDownload->file->open(QIODevice::Append)) {
             QString str = newDownload->file->errorString();
             newDownload->file->deleteLater();
@@ -137,6 +139,7 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     //Find the structure from the list
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(QObject::sender());
     QString progress, size, unit;
+    int state = -1;
 
     DOWNLOADINFO *currDownload;
     int downloadIndex = getDownloadIndex(reply);
@@ -152,7 +155,7 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
         //wrong server
         currDownload->reply->deleteLater();
         QString url;
-        if (window->isDownloadPaused(currDownload->link) || window->isDownloadPaused(currDownload->redirectedFrom))
+        if (window->downloadState(currDownload->link) == PAUSED || window->downloadState(currDownload->redirectedFrom) == PAUSED)
             url = "https://" + QString(got.split(',').at(0).split(':').at(1)) + QString("/cgi-bin/rsapi.cgi?sub=download&fileid=%1&filename=%2&login=%3&password=%4&position=%5").arg(currDownload->fileid).arg(currDownload->filename).arg(rsuser).arg(rspass).arg(currDownload->downloaded);
         else
             url = "https://" + QString(got.split(',').at(0).split(':').at(1)) + QString("/cgi-bin/rsapi.cgi?sub=download&fileid=%1&filename=%2&login=%3&password=%4").arg(currDownload->fileid).arg(currDownload->filename).arg(rsuser).arg(rspass);
@@ -166,9 +169,9 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
         return;
     } else if (got.startsWith("ERROR:")) {
         if (currDownload->redirectedFrom.isEmpty())
-            emit updateMainWindow(currDownload->link, "", "", "", "", got.split('<').at(0), "", "");
+            emit updateMainWindow(currDownload->link, "", "", "", "", ERROR, "", "", got.split('<').at(0));
         else
-            emit updateMainWindow(currDownload->redirectedFrom, "", "", "", "", got.split('<').at(0), "", "");
+            emit updateMainWindow(currDownload->redirectedFrom, "", "", "", "", ERROR, "", "", got.split('<').at(0));
         destroyDownload(currDownload, true);
         return;
     }
@@ -178,7 +181,10 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     if (!currDownload->total)
         currDownload->total = bytesTotal;
 
-    double speed = currDownload->downloaded * 1000.0 / currDownload->timer.elapsed();
+    currDownload->length += got.length();
+    currDownload->speed = currDownload->length * 1000 / currDownload->timer.elapsed();
+
+    double speed = currDownload->speed;
 
     int ttime = (currDownload->total / speed);
     int tsec = ttime - (currDownload->timer.elapsed() / 1000); // still need to mod % 60
@@ -197,9 +203,9 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
         unit = QString::number((qint64)speed) + "MB/s";
     }
 
-    progress = "0%";
+    progress = "0";
     if (currDownload->total)
-        progress = QString::number((qint64)(((double)currDownload->downloaded / (double)currDownload->total) * 100)) + "%";
+        progress = QString::number((qint64)(((double)currDownload->downloaded / (double)currDownload->total) * 100));
 
     double bytes = currDownload->total;
     for (int i = 0;; i++) {
@@ -230,24 +236,24 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
         }
     }
 
-    QString status = tr("DOWNLOADING");
+    state = DOWNLOADING;
     if (currDownload->downloaded == currDownload->total)
-        status = tr("COMPLETED");
+        state = COMPLETED;
 
     if (currDownload->redirectedFrom.isEmpty())
-        emit updateMainWindow(currDownload->link, size, progress, unit, eta, status, QString::number(currDownload->downloaded), QString::number(currDownload->total));
+        emit updateMainWindow(currDownload->link, size, progress, unit, eta, state, QString::number(currDownload->downloaded), QString::number(currDownload->total), "");
     else
-        emit updateMainWindow(currDownload->redirectedFrom, size, progress, unit, eta, status, QString::number(currDownload->downloaded), QString::number(currDownload->total));
+        emit updateMainWindow(currDownload->redirectedFrom, size, progress, unit, eta, state, QString::number(currDownload->downloaded), QString::number(currDownload->total), "");
 
     if (currDownload->downloaded == currDownload->total)
-        destroyDownload(currDownload, false); // take caution, does abort break something in this case?
+        destroyDownload(currDownload, false);
 }
 
 void Downloader::pauseDownload( const QString &link ) {
     int downloadIndex = getDownloadIndex(link);
     if (downloadIndex >= 0) {
         destroyDownload(downloads.at(downloadIndex), false);
-        emit updateMainWindow(link, "", "", "", "", tr("PAUSED"), "", "");
+        emit updateMainWindow(link, "", "", "", "", PAUSED, "", "", "");
     }
     return;
 }
@@ -256,7 +262,7 @@ void Downloader::stopDownload(const QString &link) {
     int downloadIndex = getDownloadIndex(link);
     if (downloadIndex >= 0) {
         destroyDownload(downloads.at(downloadIndex), true);
-        emit updateMainWindow(link, "", "", "", "", tr("CANCELLED"), "", "");
+        emit updateMainWindow(link, "", "", "", "", CANCELLED, "", "", "");
     }
     return;
 }

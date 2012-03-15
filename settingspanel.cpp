@@ -9,11 +9,10 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
     lbRsPass = new QLabel(this);
     lbRsChecked = new QLabel(this);
     lbConcDownloads = new QLabel(this);
-    lbFastMode = new QLabel(this);
-    lbAutoStart = new QLabel(this);
 
     cbFastMode = new QCheckBox(this);
     cbAutoStart = new QCheckBox(this);
+    cbStartMinimized = new QCheckBox(this);
 
     tbRsUser = new QLineEdit(this);
     tbRsPass = new QLineEdit(this);
@@ -39,10 +38,9 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
     lbRsChecked->setText(tr("Not Checked"));
     lbConcDownloads->setText(tr("Concurrent Downloads"));
 
-    lbFastMode->setText(tr("Fast-Mode"));
-    lbFastMode->setAlignment(Qt::AlignHCenter);
-    lbAutoStart->setText(tr("AutoStart"));
-    lbAutoStart->setAlignment(Qt::AlignHCenter);
+    cbFastMode->setText(tr("Fast-Mode"));
+    cbAutoStart->setText(tr("AutoStart"));
+    cbStartMinimized->setText(tr("Start Minimized"));
 
     lbRsHeader->setAlignment(Qt::AlignHCenter);
     lbRsUser->setAlignment(Qt::AlignHCenter);
@@ -64,10 +62,9 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
     layoutRs->addWidget(btRsCheckAccount, 3, 1);
     layoutRs->addWidget(lbConcDownloads, 1, 4);
     layoutRs->addWidget(tbConcDownloads, 1, 5);
-    layoutRs->addWidget(lbFastMode, 2, 4);
-    layoutRs->addWidget(cbFastMode, 2, 5);
-    layoutRs->addWidget(lbAutoStart, 3, 4);
-    layoutRs->addWidget(cbAutoStart, 3, 5);
+    layoutRs->addWidget(cbFastMode, 2, 4);
+    layoutRs->addWidget(cbAutoStart, 3, 4);
+    layoutRs->addWidget(cbStartMinimized, 2, 5);
 
     layoutHButtons->addWidget(btOk);
     layoutHButtons->addWidget(btCancel);
@@ -79,13 +76,6 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
 
     this->setLayout(layoutSettings);
     this->layout()->setSizeConstraint(QLayout::SetFixedSize);
-
-    this->setTabOrder(tbRsUser, tbRsPass);
-    this->setTabOrder(tbRsPass, btRsCheckAccount);
-    this->setTabOrder(btRsCheckAccount, tbConcDownloads);
-    this->setTabOrder(tbConcDownloads, tblN2P);
-    this->setTabOrder(tblN2P, btOk);
-    this->setTabOrder(btOk, btCancel);
 
     tblN2P->addAction(addRow);
     tblN2P->addAction(delRow);
@@ -105,11 +95,13 @@ SettingsPanel::SettingsPanel(QWidget *parent) :
     this->setTabOrder(btRsCheckAccount, tbConcDownloads);
     this->setTabOrder(tbConcDownloads, cbFastMode);
     this->setTabOrder(cbFastMode, cbAutoStart);
-    this->setTabOrder(cbAutoStart, tblN2P);
+    this->setTabOrder(cbAutoStart, cbStartMinimized);
+    this->setTabOrder(cbStartMinimized, tblN2P);
     this->setTabOrder(tblN2P, btOk);
     this->setTabOrder(btOk, btCancel);
 
     loadSettings();
+    this->setWindowTitle("Settings");
     return;
 }
 
@@ -145,6 +137,7 @@ void SettingsPanel::saveSettings( void ) {
     settings.setValue("concd", tbConcDownloads->text());
     settings.setValue("fastmode", cbFastMode->isChecked() ? "true" : "false");
     settings.setValue("autostart", cbAutoStart->isChecked() ? "true" : "false");
+    settings.setValue("startminimized", cbStartMinimized->isChecked() ? "true" : "false");
     for (int row = 0; row < tblN2P->rowCount(); row++) {
         settings.beginGroup(QString("Preference #%1").arg(row));
         settings.remove("");
@@ -165,6 +158,7 @@ void SettingsPanel::loadSettings( void ) {
     tbConcDownloads->setText(settings.value("concd").toString());
     cbFastMode->setChecked(settings.value("fastmode").toBool());
     cbAutoStart->setChecked(settings.value("autostart").toBool());
+    cbStartMinimized->setChecked(settings.value("startminimized").toBool());
     for (int currentPref = 0;; currentPref++) {
         settings.beginGroup(QString("Preference #%1").arg(currentPref));
         if (settings.value("1").isNull()) {

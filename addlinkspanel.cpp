@@ -72,7 +72,7 @@ AddLinksPanel::AddLinksPanel(QWidget *parent) :
     connect(tbPath, SIGNAL(textChanged(QString)), this, SLOT(tbPath_textChanged(QString)));
     connect(tbNewRulePath, SIGNAL(focused()), this, SLOT(tbNewRulePath_focused()));
 
-    this->setWindowTitle("RapidshareDownloader - Add Links");
+    this->setWindowTitle("Add Links");
     this->setTabOrder(teLinks, tbPath);
     this->setTabOrder(tbPath, btFind);
     this->setTabOrder(btFind, cmbNewRuleType);
@@ -127,9 +127,11 @@ void AddLinksPanel::resizeToContents( void ) {
 
 void AddLinksPanel::tbPath_textChanged( QString path ) {
     QDir dir(path);
-    if (path.isEmpty())
+    if (path.isEmpty()) {
+        btAdd->setEnabled(false);
         return;
-    btAdd->setEnabled(dir.exists() ? true : false);
+    }
+    btAdd->setEnabled(dir.exists() && !teLinks->document()->isEmpty() ? true : false);
 }
 
 void AddLinksPanel::findPath( void ) {
@@ -145,6 +147,7 @@ QTextDocument *AddLinksPanel::getLinks( void ) {
 }
 
 void AddLinksPanel::suggestPath( void ) {
+    tbPath_textChanged(tbPath->text());
     QSettings settings("NoOrganization", "RapidshareDownloader");
     settings.beginGroup("Settings");
     for (int currentPref = 0;; currentPref++) {
