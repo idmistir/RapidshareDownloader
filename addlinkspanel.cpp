@@ -104,6 +104,7 @@ void AddLinksPanel::accepted( void ) {
 
 void AddLinksPanel::tbNewRulePath_focused( void ) {
     tbNewRulePath->setText(QFileDialog::getExistingDirectory(this, tr("Locate destination directory"), "/"));
+    tbPath->setText(tbNewRulePath->text());
 }
 
 QTextEdit* AddLinksPanel::getTeLinks( void ) {
@@ -126,6 +127,7 @@ void AddLinksPanel::resizeToContents( void ) {
 }
 
 void AddLinksPanel::tbPath_textChanged( QString path ) {
+    tbNewRulePath->setText(path);
     QDir dir(path);
     if (path.isEmpty()) {
         btAdd->setEnabled(false);
@@ -151,7 +153,7 @@ void AddLinksPanel::suggestPath( void ) {
     QSettings settings("NoOrganization", "RapidshareDownloader");
     settings.beginGroup("Settings");
     for (int currentPref = 0;; currentPref++) {
-        settings.beginGroup(QString("Preference#%1").arg(currentPref));
+        settings.beginGroup(QString("Preference #%1").arg(currentPref));
         if (settings.value("1").isNull()) {
             settings.endGroup();
             break;

@@ -24,7 +24,6 @@ public:
     
     bool checkAccount(const QString &user, const QString &pass);
     bool download(const QString &link, const QString &saveAs);
-    bool downloadDirect(const QString &link);
 
     enum DOWNLOADSTATES { WAITING = 0, QUEUING, DOWNLOADING, COMPLETED, PAUSED, CANCELLED, ERROR };
 public slots:

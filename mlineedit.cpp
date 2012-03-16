@@ -7,5 +7,6 @@ MLineEdit::MLineEdit(QWidget *parent) :
 
 void MLineEdit::focusInEvent(QFocusEvent *event) {
     QLineEdit::focusInEvent(event);
-    emit focused();
+    if (event->reason() == Qt::MouseFocusReason)
+        emit focused();
 }

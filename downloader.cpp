@@ -190,7 +190,7 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     int tsec = ttime - (currDownload->timer.elapsed() / 1000); // still need to mod % 60
     int tmin = tsec / 60;
     int thor = tmin / 60;
-    QTime time(thor, tmin, tsec % 60);
+    QTime time(thor % 60, tmin % 60, tsec % 60);
     QString eta = time.toString("hh:mm:ss");
 
     if (speed < 1024) {

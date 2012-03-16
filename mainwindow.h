@@ -17,6 +17,7 @@
 #include <QEvent>
 #include <QMenu>
 #include <QTimer>
+#include <QThread>
 
 #include "downloader.h"
 #include "settingspanel.h"
@@ -50,6 +51,7 @@ signals:
     void pauseDownload( const QString &link);
     void stopDownload( const QString &link);
 
+
 private slots:
     void settingsMenu( void );
     void addLinksMenu( void );
@@ -64,6 +66,7 @@ private slots:
     void openTargetDirectory( void );
     void aboutToQuit( void );
     void changeEvent(QEvent *);
+    void trayActivated(QSystemTrayIcon::ActivationReason);
 
 private:
     void resizeEvent(QResizeEvent *);
@@ -73,11 +76,14 @@ private:
     void addLink( const QString &link, const QString &saveAs, const int stateValue = -1, const int nextText = 0, const int totalText = 0);
     void sortList(QModelIndexList &list, bool ascending = true);
 
-    Downloader *downloader;
+
     QAction *settings, *about, *openInBrowser, *trayActionShow, *trayActionExit;
     QClipboard *clipboard;
     QSystemTrayIcon *trayIcon;
     QMenu *trayMenu;
+    Downloader *downloader;
+
+    QTime time;
 
     int concd, active;
     bool fastmode, autostart, startminimized;
