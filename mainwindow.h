@@ -51,7 +51,6 @@ signals:
     void pauseDownload( const QString &link);
     void stopDownload( const QString &link);
 
-
 private slots:
     void settingsMenu( void );
     void addLinksMenu( void );
@@ -65,25 +64,26 @@ private slots:
     void about_clicked( void );
     void openTargetDirectory( void );
     void aboutToQuit( void );
+    void closeApp( void );
     void changeEvent(QEvent *);
     void trayActivated(QSystemTrayIcon::ActivationReason);
+    void saveLinks( void );
 
 private:
     void resizeEvent(QResizeEvent *);
     void loadSettings( void );
-    void saveLinks( void );
     void loadLinks( void );
     void addLink( const QString &link, const QString &saveAs, const int stateValue = -1, const int nextText = 0, const int totalText = 0);
     void sortList(QModelIndexList &list, bool ascending = true);
+    void decrementActive( void );
 
-
-    QAction *settings, *about, *openInBrowser, *trayActionShow, *trayActionExit;
+    QAction *settings, *about, *openInBrowser, *trayActionShow, *trayActionExit, *exit;
     QClipboard *clipboard;
     QSystemTrayIcon *trayIcon;
     QMenu *trayMenu;
     Downloader *downloader;
 
-    QTime time;
+    QTimer  *timer;
 
     int concd, active;
     bool fastmode, autostart, startminimized;

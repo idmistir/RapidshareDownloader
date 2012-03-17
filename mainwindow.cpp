@@ -7,10 +7,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    timer = new QTimer(this);
+    timer->start(1000);
+
     QIcon appIcon;
     appIcon.addFile(QString::fromUtf8(":/icons/C:/Users/PJames/Pictures/48/Chosen/icon.png"), QSize(), QIcon::Normal, QIcon::Off);
-
-    time = QTime();
 
     concd = 0;
     active = 0;
@@ -42,6 +43,8 @@ MainWindow::MainWindow(QWidget *parent) :
     about->setText("About");
     openInBrowser = new QAction(this);
     openInBrowser->setText("Open target directory");
+    exit = new QAction(this);
+    exit->setText("Exit");
 
     clipboard = QApplication::clipboard();
 
@@ -58,11 +61,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     this->menuBar()->addAction(settings);
     this->menuBar()->addAction(about);
+    this->menuBar()->addAction(exit);
 
     connect(settings, SIGNAL(triggered()), this, SLOT(settingsMenu()));
     connect(about, SIGNAL(triggered()), this, SLOT(about_clicked()));
     connect(openInBrowser, SIGNAL(triggered()), this, SLOT(openTargetDirectory()));
-    connect(trayActionExit, SIGNAL(triggered()), this, SLOT(close()));
+    connect(exit, SIGNAL(triggered()), this, SLOT(closeApp()));
+    connect(trayActionExit, SIGNAL(triggered()), this, SLOT(closeApp()));
     connect(trayActionShow, SIGNAL(triggered()), this, SLOT(showNormal()));
 
     connect(ui->btAdd, SIGNAL(clicked()), this, SLOT(addLinksMenu()));
@@ -73,13 +78,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->btMoveUp, SIGNAL(clicked()), this, SLOT(btMoveUp_clicked()));
     connect(ui->btMoveDown, SIGNAL(clicked()), this, SLOT(aboutToQuit()));
 
-    connect(this, SIGNAL(startNewDownload()), this, SLOT(btStart_clicked()));
+    connect(this, SIGNAL(startNewDownload()), this, SLOT(btStart_clicked()), Qt::QueuedConnection);
     connect(this, SIGNAL(pauseDownload(QString)), downloader, SLOT(pauseDownload(QString)));
     connect(this, SIGNAL(stopDownload(QString)), downloader, SLOT(stopDownload(QString)));
 
     connect(clipboard, SIGNAL(dataChanged()), this, SLOT(clipboard_dataChanged()));
     connect(trayIcon, SIGNAL(messageClicked()), this, SLOT(showNormal()));
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(trayActivated(QSystemTrayIcon::ActivationReason)));
+    connect(timer, SIGNAL(timeout()), this, SLOT(saveLinks()));
 
     loadSettings();
     loadLinks();
@@ -90,10 +96,12 @@ MainWindow::MainWindow(QWidget *parent) :
     if (autostart)
         emit startNewDownload();
 
-    if (startminimized) {
-        if (QSystemTrayIcon::isSystemTrayAvailable())
+    if (QSystemTrayIcon::isSystemTrayAvailable()) {
+        if (startminimized)
             this->showMinimized();
+        trayIcon->show();
     }
+
     return;
 }
 
@@ -142,7 +150,6 @@ void MainWindow::clipboard_dataChanged( void ) {
         for (int i = 0; i < links.length(); i++) {
             addLink(links.at(i), fpath);
         }
-        saveLinks();
         panel->deleteLater();
         if (fastmode)
             emit startNewDownload();
@@ -187,38 +194,37 @@ void MainWindow::updateDownload(QString filename, QString size, QString progress
                 case COMPLETED:
                     ui->tblDownloads->item(i, DownloadState)->setText(QString::number(COMPLETED));
                     ui->tblDownloads->item(i, Status)->setText(tr("COMPLETED"));
-                    active--;
+                    decrementActive();
                     if (trayIcon->isVisible()) {
                         if (active)
                             trayIcon->showMessage("A download has completed!", ui->tblDownloads->item(i, FileName)->text() + QString(" has finished downloading."), QSystemTrayIcon::Information, 1000);
                         else
                             trayIcon->showMessage("All downloads have finished!", ui->tblDownloads->item(i, FileName)->text() + QString(" has finished downloading."), QSystemTrayIcon::Information, 1000);
                     }
+                    emit startNewDownload();
                     break;
                 case PAUSED:
                     ui->tblDownloads->item(i, DownloadState)->setText(QString::number(PAUSED));
                     ui->tblDownloads->item(i, Status)->setText(tr("PAUSED"));
-                    active--;
+                    decrementActive();
                     break;
                 case CANCELLED:
                     ui->tblDownloads->item(i, DownloadState)->setText(QString::number(CANCELLED));
                     ui->tblDownloads->item(i, Status)->setText(tr("CANCELLED"));
-                    active--;
+                    decrementActive();
                     break;
                 case ERROR:
                     ui->tblDownloads->item(i, DownloadState)->setText(QString::number(ERROR));
                     ui->tblDownloads->item(i, Status)->setText(errorString);
                     if (trayIcon->isVisible())
                         trayIcon->showMessage("A download has encountered an error!", ui->tblDownloads->item(i, Status)->text(), QSystemTrayIcon::Information, 1000);
-                    active--;
+                    decrementActive();
+                    emit startNewDownload();
                     break;
                 default:
                     break;
             }
-            if (time.elapsed() / 1000 >= 1000) {
-                saveLinks();
-                time.restart();
-            }
+            return;
         }
     }
 }
@@ -231,14 +237,12 @@ void MainWindow::btDel_clicked( void ) {
         for (int i = 0; i < selected; i++) {
             int state = downloadState(ui->tblDownloads->item(list.at(i).row(), FileName)->text());
             if (state == DOWNLOADING || state == QUEUING) {
-                active--;
                 emit stopDownload(ui->tblDownloads->item(list.at(i).row(), FileName)->text());
                 ui->tblDownloads->removeRow(list.at(i).row());
             } else
                 ui->tblDownloads->removeRow(list.at(i).row());
         }
     }
-    saveLinks();
 }
 
 void MainWindow::btStart_clicked( void ) {
@@ -253,7 +257,7 @@ void MainWindow::btStart_clicked( void ) {
                 int state = downloadState(ui->tblDownloads->item(list.at(i).row(), FileName)->text());
                 if (state == WAITING || state == PAUSED || state == CANCELLED) {
                     if (downloader->download(ui->tblDownloads->item(list.at(i).row(), FileName)->text(), ui->tblDownloads->item(list.at(i).row(), Path)->text())) {
-                        ui->tblDownloads->item(i, Status)->setText(tr("QUEUING"));
+                        updateDownload(ui->tblDownloads->item(i, FileName)->text(), "", "", "", "", QUEUING, "", "", "");
                         active++;
                     }
                 }
@@ -264,9 +268,9 @@ void MainWindow::btStart_clicked( void ) {
 
     for (int i = 0; active < concd && i < ui->tblDownloads->rowCount(); i++) {
         int state = downloadState(ui->tblDownloads->item(i, FileName)->text());
-        if (state == WAITING || state == PAUSED) {
+        if (state == WAITING || state == PAUSED || state == CANCELLED) {
             if (downloader->download(ui->tblDownloads->item(i, FileName)->text(), ui->tblDownloads->item(i, Path)->text())) {
-                ui->tblDownloads->item(i, Status)->setText(tr("QUEUING"));
+                updateDownload(ui->tblDownloads->item(i, FileName)->text(), "", "", "", "", QUEUING, "", "", "");
                 active++;
             }
         }
@@ -280,10 +284,8 @@ void MainWindow::btPause_clicked( void ) {
     if (selected) {
         for (int i = 0; i < selected; i++) {
             int state = downloadState(ui->tblDownloads->item(list.at(i).row(), FileName)->text());
-            if (state == DOWNLOADING) {
-                active--;
+            if (state == DOWNLOADING)
                 emit pauseDownload(ui->tblDownloads->item(list.at(i).row(), FileName)->text());
-            }
         }
     }
 }
@@ -295,10 +297,9 @@ void MainWindow::btStop_clicked( void ) {
     if (selected) {
         for (int i = 0; i < selected; i++) {
             int state = downloadState(ui->tblDownloads->item(list.at(i).row(), FileName)->text());
-            if (state == DOWNLOADING) {
-                active--;
+            if (state == DOWNLOADING)
                 emit stopDownload(ui->tblDownloads->item(list.at(i).row(), FileName)->text());
-            } else
+            else
                 updateDownload(ui->tblDownloads->item(list.at(i).row(), FileName)->text(), "", "", "", "", CANCELLED, "", "", "");
         }
     }
@@ -326,7 +327,6 @@ void MainWindow::btMoveUp_clicked( void ) {
 
         ui->tblDownloads->selectRow(rowTo);
     }
-    saveLinks();
 }
 
 void MainWindow::btMoveDown_clicked( void ) {
@@ -350,7 +350,6 @@ void MainWindow::btMoveDown_clicked( void ) {
         }
         ui->tblDownloads->selectRow(rowTo);
     }
-    saveLinks();
 }
 
 void MainWindow::addLinksMenu( void ) {
@@ -362,7 +361,6 @@ void MainWindow::addLinksMenu( void ) {
             if (links.at(i).contains("rapidshare.com"))
                 addLink(links.at(i).trimmed(), fpath);
         }
-        saveLinks();
     }
     panel->deleteLater();
 }
@@ -574,7 +572,18 @@ void MainWindow::openTargetDirectory( void ) {
 }
 
 void MainWindow::aboutToQuit( void ) {
-    for (int i = 0; i < ui->tblDownloads->rowCount(); i++)
-        pauseDownload(ui->tblDownloads->item(i, FileName)->text());
+    for (int i = 0; i < ui->tblDownloads->rowCount(); i++) {
+        if (downloadState(ui->tblDownloads->item(i, FileName)->text()) == DOWNLOADING)
+            pauseDownload(ui->tblDownloads->item(i, FileName)->text());
+    }
     saveLinks();
+}
+
+void MainWindow::closeApp( void ) {
+    qApp->quit();
+}
+
+void MainWindow::decrementActive( void ) {
+    if (active - 1 >= 0)
+        active--;
 }
