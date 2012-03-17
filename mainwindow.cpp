@@ -76,7 +76,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->btPause, SIGNAL(clicked()), this, SLOT(btPause_clicked()));
     connect(ui->btStop, SIGNAL(clicked()), this, SLOT(btStop_clicked()));
     connect(ui->btMoveUp, SIGNAL(clicked()), this, SLOT(btMoveUp_clicked()));
-    connect(ui->btMoveDown, SIGNAL(clicked()), this, SLOT(aboutToQuit()));
+    connect(ui->btMoveDown, SIGNAL(clicked()), this, SLOT(btMoveDown_clicked()));
 
     connect(this, SIGNAL(startNewDownload()), this, SLOT(btStart_clicked()), Qt::QueuedConnection);
     connect(this, SIGNAL(pauseDownload(QString)), downloader, SLOT(pauseDownload(QString)));
