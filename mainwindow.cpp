@@ -148,8 +148,9 @@ void MainWindow::clipboard_dataChanged( void ) {
         QStringList links = panel->getLinks()->toPlainText().split('\n');
         QString fpath = panel->getPath();
         for (int i = 0; i < links.length(); i++) {
-            addLink(links.at(i), fpath);
+            addLink(links.at(i).trimmed(), fpath);
         }
+        //panel->accepted();
         panel->deleteLater();
         if (fastmode)
             emit startNewDownload();
@@ -366,6 +367,9 @@ void MainWindow::addLinksMenu( void ) {
 }
 
 void MainWindow::addLink( const QString &link, const QString &saveAs, const int stateValue, const int nextText, const int totalText ) {
+    if (downloadState(link) != -1)
+        return;
+
     int nextrow = ui->tblDownloads->rowCount();
     ui->tblDownloads->insertRow(nextrow);
     QTableWidgetItem *name = new QTableWidgetItem();
@@ -532,7 +536,7 @@ int MainWindow::downloadState(const QString &link) {
         if (ui->tblDownloads->item(i, FileName)->text() == link)
             return ui->tblDownloads->item(i, DownloadState)->text().toInt();
     }
-    return false;
+    return -1;
 }
 
 int MainWindow::downloadLast(const QString &link) {

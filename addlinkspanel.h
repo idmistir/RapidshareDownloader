@@ -26,13 +26,16 @@ public:
     QTextEdit *getTeLinks( void );
     QLineEdit *getTbPath( void );
 
+public slots:
+    void accepted();
+
 private slots:
     void resizeToContents( void );
     void suggestPath( void );
     void findPath( void );
     void tbPath_textChanged( QString path );
     void tbNewRulePath_focused( void );
-    void accepted();
+    void tbNewRulePath_textChanged( QString path );
 
 private:
     QLabel *lbAddLinks, *lbSaveTo, *lbNewRule, *lb;

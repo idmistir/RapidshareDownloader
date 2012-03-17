@@ -71,6 +71,7 @@ AddLinksPanel::AddLinksPanel(QWidget *parent) :
     connect(btCancel, SIGNAL(clicked()), this, SLOT(reject()));
     connect(tbPath, SIGNAL(textChanged(QString)), this, SLOT(tbPath_textChanged(QString)));
     connect(tbNewRulePath, SIGNAL(focused()), this, SLOT(tbNewRulePath_focused()));
+    connect(tbNewRulePath, SIGNAL(textChanged(QString)), this, SLOT(tbNewRulePath_textChanged(QString)));
 
     this->setWindowTitle("Add Links");
     this->setTabOrder(teLinks, tbPath);
@@ -82,12 +83,16 @@ AddLinksPanel::AddLinksPanel(QWidget *parent) :
     this->setTabOrder(btAdd, btCancel);
 }
 
+void AddLinksPanel::tbNewRulePath_textChanged(QString path) {
+    tbPath->setText(path);
+}
+
 void AddLinksPanel::accepted( void ) {
     if (!tbNewRuleName->text().isEmpty() && !tbNewRulePath->text().isEmpty()) {
         QSettings settings("NoOrganization", "RapidshareDownloader");
         settings.beginGroup("Settings");
         for (int i = 0;; i++) {
-            settings.beginGroup(QString("Preference#%1").arg(i));
+            settings.beginGroup(QString("Preference #%1").arg(i));
             if (settings.value("1").toString().isEmpty()) {
                 settings.remove("");
                 settings.setValue("1", cmbNewRuleType->itemText(cmbNewRuleType->currentIndex()));
