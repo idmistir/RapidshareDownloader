@@ -98,7 +98,7 @@
       <x>0</x>
       <y>0</y>
       <width>518</width>
-      <height>79</height>
+      <height>80</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="layoutActions">
@@ -123,7 +123,7 @@
          </property>
          <property name="icon">
           <iconset resource="Resources.qrc">
-           <normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/add.png</normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/add.png</iconset>
+           <normaloff>:/icons/images/add.png</normaloff>:/icons/images/add.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -172,7 +172,7 @@
          </property>
          <property name="icon">
           <iconset resource="Resources.qrc">
-           <normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/delete.png</normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/delete.png</iconset>
+           <normaloff>:/icons/images/delete.png</normaloff>:/icons/images/delete.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -221,7 +221,7 @@
          </property>
          <property name="icon">
           <iconset resource="Resources.qrc">
-           <normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/start.png</normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/start.png</iconset>
+           <normaloff>:/icons/images/start.png</normaloff>:/icons/images/start.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -270,7 +270,7 @@
          </property>
          <property name="icon">
           <iconset resource="Resources.qrc">
-           <normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/stop.png</normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/stop.png</iconset>
+           <normaloff>:/icons/images/stop.png</normaloff>:/icons/images/stop.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -319,7 +319,7 @@
          </property>
          <property name="icon">
           <iconset resource="Resources.qrc">
-           <normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/pause.png</normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/pause.png</iconset>
+           <normaloff>:/icons/images/pause.png</normaloff>:/icons/images/pause.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -368,7 +368,7 @@
          </property>
          <property name="icon">
           <iconset resource="Resources.qrc">
-           <normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/up.png</normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/up.png</iconset>
+           <normaloff>:/icons/images/up.png</normaloff>:/icons/images/up.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -417,7 +417,7 @@
          </property>
          <property name="icon">
           <iconset resource="Resources.qrc">
-           <normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/down.png</normaloff>:/icons/C:/Users/PJames/Pictures/48/Chosen/down.png</iconset>
+           <normaloff>:/icons/images/down.png</normaloff>:/icons/images/down.png</iconset>
          </property>
          <property name="iconSize">
           <size>

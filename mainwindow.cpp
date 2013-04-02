@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
     timer->start(1000);
 
     QIcon appIcon;
-    appIcon.addFile(QString::fromUtf8(":/icons/C:/Users/PJames/Pictures/48/Chosen/icon.png"), QSize(), QIcon::Normal, QIcon::Off);
+    appIcon.addFile(QString::fromUtf8(":/icons/images/icon.png"), QSize(), QIcon::Normal, QIcon::Off);
 
     concd = 0;
     active = 0;
@@ -133,7 +133,7 @@ void MainWindow::changeEvent(QEvent *event) {
 void MainWindow::clipboard_dataChanged( void ) {
     //todo: improve
     //if (clipboard->text().contains(QRegExp("/^https?\\:\\/\\/www\\.rapidshare\\.com\\/files\\//i", Qt::CaseInsensitive)) || clipboard->text().contains(QRegExp("/^https?\\:\\/\\/rapidshare\\.com\\/files\\//i", Qt::CaseInsensitive))) {
-    if (clipboard->text().split('/n').at(0).contains("rapidshare.com")) {
+    if (clipboard->text().split('/n').at(0).contains("rapidshare.com") || clipboard->text().split('/n').at(0).contains("safelinking.net")) {
         AddLinksPanel *panel = new AddLinksPanel(this);
         panel->getTeLinks()->setText(clipboard->text());
         if (panel->getTbPath()->text().isEmpty() || !fastmode) {
@@ -197,7 +197,7 @@ void MainWindow::updateDownload(QString filename, QString size, QString progress
                     ui->tblDownloads->item(i, Status)->setText(tr("COMPLETED"));
                     decrementActive();
                     if (trayIcon->isVisible()) {
-                        if (active)
+                        if (active && i != ui->tblDownloads->rowCount() - 1 )
                             trayIcon->showMessage("A download has completed!", ui->tblDownloads->item(i, FileName)->text() + QString(" has finished downloading."), QSystemTrayIcon::Information, 1000);
                         else
                             trayIcon->showMessage("All downloads have finished!", ui->tblDownloads->item(i, FileName)->text() + QString(" has finished downloading."), QSystemTrayIcon::Information, 1000);
@@ -258,7 +258,7 @@ void MainWindow::btStart_clicked( void ) {
                 int state = downloadState(ui->tblDownloads->item(list.at(i).row(), FileName)->text());
                 if (state == WAITING || state == PAUSED || state == CANCELLED) {
                     if (downloader->download(ui->tblDownloads->item(list.at(i).row(), FileName)->text(), ui->tblDownloads->item(list.at(i).row(), Path)->text())) {
-                        updateDownload(ui->tblDownloads->item(i, FileName)->text(), "", "", "", "", QUEUING, "", "", "");
+                        updateDownload(ui->tblDownloads->item(list.at(i).row(), FileName)->text(), "", "", "", "", QUEUING, "", "", "");
                         active++;
                     }
                 }
@@ -359,7 +359,7 @@ void MainWindow::addLinksMenu( void ) {
         QStringList links = panel->getLinks()->toPlainText().split('\n');
         QString fpath = panel->getPath();
         for (int i = 0; i < links.length(); i++) {
-            if (links.at(i).contains("rapidshare.com"))
+            if (links.at(i).contains("rapidshare.com") || links.at(i).contains("safelinking.net"))
                 addLink(links.at(i).trimmed(), fpath);
         }
     }

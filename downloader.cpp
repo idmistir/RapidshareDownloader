@@ -240,6 +240,11 @@ void Downloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     if (currDownload->downloaded == currDownload->total)
         state = COMPLETED;
 
+    /*QMessageBox::critical(window, "1-2-3", QString("BytesReceived: %1\n").arg(bytesReceived) +
+                                           QString("BytesTotal: %1\n").arg(bytesTotal) +
+                                           QString("Link: %1\n").arg(currDownload->link) +
+                                           QString("RedirectedFrom: %1\n").arg(currDownload->redirectedFrom), QMessageBox::Ok, QMessageBox::Ok);
+*/
     if (currDownload->redirectedFrom.isEmpty())
         emit updateMainWindow(currDownload->link, size, progress, unit, eta, state, QString::number(currDownload->downloaded), QString::number(currDownload->total), "");
     else
